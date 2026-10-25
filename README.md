@@ -7,7 +7,7 @@ Prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang a
 Di folder ini jalankan:
 
 ```powershell
-python -m http.server 4173
+python -m http.server 4173 --bind 127.0.0.1
 ```
 
 Kemudian buka `http://localhost:4173`.
