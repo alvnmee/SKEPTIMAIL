@@ -19,6 +19,8 @@ let companyMessage = '';
 let showEmployeeForm = false;
 let trainingEmployeeId = '';
 let startingSession = false;
+let registrationDrafts = { individual: null, company: null };
+let employeeTargetRowId = 0;
 
 function parseStored(key, fallback) {
   try {
@@ -52,6 +54,38 @@ function createProgress(input) {
     scoreHistory: Array.isArray(source.scoreHistory) ? source.scoreHistory : []
   };
 }
+function normalizeSimulationTargets(value, accountRole) {
+  if (!value || typeof value !== 'object') return null;
+  const platforms = Array.isArray(value.platforms)
+    ? [...new Set(value.platforms.filter(platform => ['WhatsApp', 'Email', 'SMS'].includes(platform)))]
+    : [];
+  const targets = value.targets && typeof value.targets === 'object' ? value.targets : value;
+  const cleanTargets = {
+    email: String(targets.email || '').trim().toLowerCase(),
+    phone: String(targets.phone || '').trim()
+  };
+  if (accountRole === 'company') {
+    const contacts = Array.isArray(value.employeeContacts) ? value.employeeContacts : [];
+    return {
+      scope: 'company',
+      platforms: platforms,
+      targets: cleanTargets,
+      employeeContacts: contacts.filter(contact => contact && typeof contact === 'object').map(contact => ({
+        name: String(contact.name || '').trim(),
+        email: String(contact.email || '').trim().toLowerCase(),
+        phone: String(contact.phone || '').trim(),
+        division: String(contact.division || '').trim()
+      })).filter(contact => contact.name || contact.email || contact.phone || contact.division),
+      authorized: Boolean(value.authorized)
+    };
+  }
+  return {
+    scope: 'individual',
+    platforms: platforms,
+    targets: cleanTargets,
+    authorized: Boolean(value.authorized)
+  };
+}
 function normalizedAccount(account) {
   if (!account || typeof account !== 'object') return null;
   const id = normalizeUsername(account.id || account.username);
@@ -66,6 +100,7 @@ function normalizedAccount(account) {
     needsPassword: Boolean(account.needsPassword),
     role: account.role === 'company' ? 'company' : 'individual',
     company: account.company && typeof account.company === 'object' ? account.company : null,
+    simulationTargets: normalizeSimulationTargets(account.simulationTargets, account.role === 'company' ? 'company' : 'individual'),
     createdAt: account.createdAt || new Date(0).toISOString(),
     migrated: Boolean(account.migrated),
     progress: createProgress(account.progress)
@@ -480,9 +515,91 @@ function login() {
     '<div id="form"></div></section><p class="auth-safe">Akun dan progres disimpan hanya di browser/perangkat ini. Jangan gunakan kata sandi akun penting.</p></main>';
   form(isLogin ? 'login' : signupType);
   document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click', () => {
+    captureRegistrationDraft(signupType);
     signupType = button.dataset.kind;
     login();
   }));
+}
+function employeeTargetRowMarkup(contact) {
+  const row = contact || {};
+  const rowId = ++employeeTargetRowId;
+  return '<tr class="employee-target-row" data-row-id="' + rowId + '">' +
+    '<td data-label="Nama Karyawan"><input name="employeeName" data-employee-field="name" aria-label="Nama Karyawan" aria-describedby="employee-name-error-' + rowId + '" maxlength="100" value="' + esc(row.name || '') + '"><small class="field-error" id="employee-name-error-' + rowId + '" data-row-error="name" aria-live="polite"></small></td>' +
+    '<td data-label="Email Kantor"><input name="employeeEmail" data-employee-field="email" type="email" aria-label="Email Kantor" aria-describedby="employee-email-error-' + rowId + '" placeholder="nama@organisasi.example" value="' + esc(row.email || '') + '"><small class="field-error" id="employee-email-error-' + rowId + '" data-row-error="email" aria-live="polite"></small></td>' +
+    '<td data-label="Nomor WhatsApp"><input name="employeePhone" data-employee-field="phone" type="tel" aria-label="Nomor WhatsApp" aria-describedby="employee-phone-error-' + rowId + '" placeholder="+62 812-3456-7890" value="' + esc(row.phone || '') + '"><small class="field-error" id="employee-phone-error-' + rowId + '" data-row-error="phone" aria-live="polite"></small></td>' +
+    '<td data-label="Divisi"><input name="employeeDivision" data-employee-field="division" aria-label="Divisi" maxlength="100" value="' + esc(row.division || '') + '"></td>' +
+    '<td data-label="Aksi"><button class="ghost target-remove-row" type="button" data-target-action="remove-employee">Hapus</button></td></tr>';
+}
+function captureRegistrationDraft(type) {
+  const formElement = document.querySelector('#authForm');
+  if (!formElement || formElement.dataset.mode !== 'register' || !['individual', 'company'].includes(type)) return;
+  const fields = {};
+  formElement.querySelectorAll('input[name],select[name]').forEach(input => {
+    if (input.name === 'targetPlatforms') {
+      if (!fields.targetPlatforms) fields.targetPlatforms = [];
+      if (input.checked) fields.targetPlatforms.push(input.value);
+    } else if (!input.name.startsWith('employee')) {
+      fields[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+    }
+  });
+  const employees = [...formElement.querySelectorAll('.employee-target-row')].map(row => ({
+    name: row.querySelector('[data-employee-field="name"]').value,
+    email: row.querySelector('[data-employee-field="email"]').value,
+    phone: row.querySelector('[data-employee-field="phone"]').value,
+    division: row.querySelector('[data-employee-field="division"]').value
+  }));
+  registrationDrafts[type] = { fields: fields, employees: employees };
+}
+function restoreRegistrationDraft(formElement, type) {
+  const draft = registrationDrafts[type];
+  if (!draft) return;
+  Object.entries(draft.fields || {}).forEach(([name, value]) => {
+    if (name === 'targetPlatforms') {
+      formElement.querySelectorAll('[name="targetPlatforms"]').forEach(input => { input.checked = value.includes(input.value); });
+      return;
+    }
+    const input = [...formElement.querySelectorAll('[name]')].find(field => field.name === name);
+    if (input) {
+      if (input.type === 'checkbox') input.checked = Boolean(value);
+      else input.value = value;
+    }
+  });
+  if (type === 'company' && draft.employees && draft.employees.length) {
+    formElement.querySelector('[data-employee-rows]').innerHTML = draft.employees.map(employeeTargetRowMarkup).join('');
+  }
+}
+function updateTargetRequirements(formElement) {
+  if (!formElement) return;
+  const platforms = [...formElement.querySelectorAll('[name="targetPlatforms"]:checked')].map(input => input.value);
+  const email = formElement.querySelector('[name="targetEmail"]');
+  const phone = formElement.querySelector('[name="targetPhone"]');
+  if (email) {
+    email.required = platforms.includes('Email');
+    email.setAttribute('aria-required', String(email.required));
+  }
+  if (phone) {
+    phone.required = platforms.includes('WhatsApp') || platforms.includes('SMS');
+    phone.setAttribute('aria-required', String(phone.required));
+  }
+}
+function targetConfigurationMarkup(company) {
+  const heading = company ? 'Konfigurasi Target Simulasi Perusahaan' : 'Konfigurasi Target Simulasi';
+  const authorization = company
+    ? 'Saya menyatakan bahwa organisasi saya memiliki kewenangan dan persetujuan yang diperlukan untuk menjalankan simulasi terhadap kontak yang didaftarkan.'
+    : 'Saya menyatakan bahwa saya memiliki izin yang sah untuk menggunakan kontak target tersebut dalam simulasi pelatihan phishing dan edukasi keamanan siber.';
+  return '<section class="target-config" aria-labelledby="target-config-title"><header class="target-config-heading"><div><p class="eyebrow">PENGATURAN LATIHAN</p><h2 id="target-config-title">' + heading + '</h2><p>Atur target untuk latihan simulasi phishing yang terotorisasi.</p></div></header>' +
+    '<div class="form-grid target-fields-grid"><label class="field">Alamat Email Target Simulasi <em>* jika Email dipilih</em><input name="targetEmail" type="email" autocomplete="off" placeholder="nama@email.com" aria-describedby="target-email-hint target-email-error"><small class="field-hint" id="target-email-hint">Wajib diisi jika platform Email dipilih.</small><small class="field-error" id="target-email-error" data-error-for="targetEmail" aria-live="polite"></small></label>' +
+    '<label class="field">Nomor WhatsApp / SMS Target Simulasi <em>* jika WhatsApp atau SMS dipilih</em><input name="targetPhone" type="tel" autocomplete="off" inputmode="tel" placeholder="+62 812-3456-7890" aria-describedby="target-phone-hint target-phone-error"><small class="field-hint" id="target-phone-hint">Gunakan format internasional, misalnya +62 812-3456-7890.</small><small class="field-error" id="target-phone-error" data-error-for="targetPhone" aria-live="polite"></small></label></div>' +
+    '<fieldset class="target-platforms" aria-describedby="target-platform-error"><legend>Platform Simulasi <em>*</em></legend><div class="target-platform-list">' +
+    ['WhatsApp', 'Email', 'SMS'].map(platform => '<label><input type="checkbox" name="targetPlatforms" value="' + platform + '"><span>' + platform + '</span></label>').join('') +
+    '</div><small class="field-error" id="target-platform-error" data-error-for="targetPlatforms" aria-live="polite"></small></fieldset>' +
+    (company ? '<div class="employee-targets"><div class="employee-targets-heading"><div><h3>Daftar Kontak &amp; Divisi Karyawan</h3><p>Tambahkan kontak yang akan menjadi target. Bagian ini opsional jika Anda hanya memakai satu target di atas.</p></div><button class="ghost target-add-row" type="button" data-target-action="add-employee">+ Tambah Baris Karyawan</button></div>' +
+      '<p class="field-hint employee-authorization-note">Jika daftar ini digunakan, pastikan otorisasi yang sah mencakup setiap kontak yang didaftarkan.</p><div class="target-contact-scroll" role="region" aria-label="Daftar kontak dan divisi karyawan" tabindex="0"><table class="target-contact-table"><thead><tr><th>Nama Karyawan</th><th>Email Kantor</th><th>Nomor WhatsApp</th><th>Divisi</th><th>Aksi</th></tr></thead><tbody data-employee-rows>' + employeeTargetRowMarkup() + '</tbody></table></div>' +
+      '<div class="target-safety-note" role="note">Registrasi hanya menyimpan konfigurasi target secara lokal. Tidak ada pesan yang dikirim dan simulasi belum dijalankan.</div></div>' :
+      '<div class="target-safety-note" role="note">Registrasi hanya menyimpan konfigurasi target secara lokal. Tidak ada pesan yang dikirim dan simulasi belum dijalankan.</div>') +
+    '<label class="consent target-authorization"><input name="targetAuthorization" type="checkbox" value="yes" aria-describedby="target-authorization-error"> <span>' + authorization + '</span></label>' +
+    '<small class="field-error target-authorization-error" id="target-authorization-error" data-error-for="targetAuthorization" aria-live="polite"></small>' +
+    '<p class="target-authorization-caveat">Pernyataan ini dicatat sebagai bagian dari prototype dan tidak memverifikasi persetujuan atau kewenangan secara hukum.</p></section>';
 }
 function authSwitchText() {
   return authMode === 'login'
@@ -502,28 +619,64 @@ function form(type) {
   } else {
     const company = type === 'company';
     const organizationFields = company
-      ? '<label class="field">Nama perusahaan / organisasi <em>*</em><input name="companyName" required minlength="2" placeholder="Nama organisasi"></label>' +
-        '<label class="field">Nama kontak penanggung jawab <em>*</em><input name="contactName" required placeholder="Nama kontak"></label>' +
+      ? '<label class="field">Nama perusahaan / organisasi <em>*</em><input name="companyName" required minlength="2" placeholder="Nama organisasi"><small class="field-error" data-error-for="companyName" aria-live="polite"></small></label>' +
+        '<label class="field">Nama kontak penanggung jawab <em>*</em><input name="contactName" required placeholder="Nama kontak"><small class="field-error" data-error-for="contactName" aria-live="polite"></small></label>' +
         '<label class="field">Domain perusahaan (opsional)<input name="domain" placeholder="organisasi.example"></label>' +
         '<label class="field">Sektor industri<select name="industry"><option>Teknologi</option><option>Keuangan</option><option>Pendidikan</option><option>Kesehatan</option><option>Lainnya</option></select></label>' +
-        '<label class="field">Jumlah karyawan target <em>*</em><input name="size" type="number" min="1" required placeholder="Contoh: 150"></label>'
-      : '<label class="field full">Nama lengkap <em>*</em><input name="displayName" required minlength="2" placeholder="Nama tampilan Anda"></label>';
+        '<label class="field">Jumlah karyawan target <em>*</em><input name="size" type="number" min="1" required placeholder="Contoh: 150"><small class="field-error" data-error-for="size" aria-live="polite"></small></label>'
+      : '<label class="field full">Nama lengkap <em>*</em><input name="displayName" required minlength="2" placeholder="Nama tampilan Anda"><small class="field-error" data-error-for="displayName" aria-live="polite"></small></label>';
     container.innerHTML =
-      '<form id="authForm" class="auth-form">' + (company ? '<div class="notice">Akun perusahaan dibuat terpisah dari akun individu. Data organisasi hanya tersimpan pada akun ini di browser yang sama.</div>' : '') +
+      '<form id="authForm" class="auth-form" data-mode="register" novalidate>' + (company ? '<div class="notice">Akun perusahaan dibuat terpisah dari akun individu. Data organisasi hanya tersimpan pada akun ini di browser yang sama.</div>' : '') +
       '<div class="form-grid">' + organizationFields +
-      '<label class="field">ID pengguna <em>*</em><input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9._\\x2d]{2,31}" autocomplete="username" placeholder="huruf, angka, titik, _ atau -"></label>' +
-      '<label class="field">Alamat email <em>*</em><input name="email" type="email" autocomplete="email" required placeholder="nama@email.com"></label>' +
-      '</div><label class="field full">Kata sandi <em>*</em><input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Minimal 8 karakter"></label>' +
-      '<label class="consent"><input name="consent" type="checkbox" required> Saya memahami bahwa ini adalah prototype lokal dan tidak mengirim simulasi kepada siapa pun.</label>' +
-      '<button class="primary auth-cta">' + (company ? 'Buat akun perusahaan' : 'Buat akun & mulai belajar') + '</button>' +
+      '<label class="field">ID pengguna <em>*</em><input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9][A-Za-z0-9._\\x2d]{2,31}" autocomplete="username" placeholder="huruf, angka, titik, _ atau -"><small class="field-error" data-error-for="username" aria-live="polite"></small></label>' +
+      '<label class="field">Alamat email <em>*</em><input name="email" type="email" autocomplete="email" required placeholder="nama@email.com"><small class="field-error" data-error-for="email" aria-live="polite"></small></label>' +
+      '</div><label class="field full">Kata sandi <em>*</em><input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="Minimal 8 karakter"><small class="field-error" data-error-for="password" aria-live="polite"></small></label>' +
+      targetConfigurationMarkup(company) +
+      '<label class="consent"><input name="consent" type="checkbox" required aria-describedby="account-consent-error"> <span>Saya memahami bahwa ini adalah prototype lokal dan tidak mengirim simulasi kepada siapa pun.</span></label><small class="field-error" id="account-consent-error" data-error-for="consent" aria-live="polite"></small>' +
+      '<button class="primary auth-cta" type="submit">' + (company ? 'Buat akun perusahaan' : 'Buat akun & mulai belajar') + '</button>' +
       '<div class="feedback" id="formmsg" aria-live="polite"></div><p class="auth-form-switch">' + switchText + '</p></form>';
   }
+  const formElement = document.querySelector('#authForm');
+  if (type !== 'login') {
+    restoreRegistrationDraft(formElement, type);
+    updateTargetRequirements(formElement);
+    formElement.addEventListener('change', event => {
+      if (event.target.name === 'targetPlatforms') {
+        updateTargetRequirements(formElement);
+        if (formElement.querySelector('[name="targetPlatforms"]:checked')) {
+          const error = formElement.querySelector('[data-error-for="targetPlatforms"]');
+          if (error) error.textContent = '';
+          formElement.querySelectorAll('[name="targetPlatforms"]').forEach(input => input.removeAttribute('aria-invalid'));
+        }
+      }
+    });
+    formElement.addEventListener('input', event => {
+      const input = event.target;
+      const error = input.name && formElement.querySelector('[data-error-for="' + input.name + '"]');
+      if (error) error.textContent = '';
+      input.removeAttribute('aria-invalid');
+      if (input.dataset.employeeField) {
+        const rowError = input.closest('td').querySelector('[data-row-error="' + input.dataset.employeeField + '"]');
+        if (rowError) rowError.textContent = '';
+      }
+    });
+    formElement.addEventListener('click', event => {
+      const action = event.target.closest('[data-target-action]');
+      if (!action) return;
+      if (action.dataset.targetAction === 'add-employee') {
+        const rows = formElement.querySelector('[data-employee-rows]');
+        if (rows) rows.insertAdjacentHTML('beforeend', employeeTargetRowMarkup());
+      }
+      if (action.dataset.targetAction === 'remove-employee') action.closest('.employee-target-row').remove();
+    });
+  }
   document.querySelector('#auth-switch').addEventListener('click', () => {
+    if (authMode === 'register') captureRegistrationDraft(signupType);
     authMode = authMode === 'login' ? 'register' : 'login';
     accountMessage = '';
     login();
   });
-  document.querySelector('#authForm').addEventListener('submit', event => {
+  formElement.addEventListener('submit', event => {
     event.preventDefault();
     submitAccountForm(event.currentTarget, type);
   });
@@ -531,6 +684,103 @@ function form(type) {
 function showFormError(message) {
   const messageElement = document.querySelector('#formmsg');
   if (messageElement) messageElement.textContent = message;
+}
+function clearRegistrationErrors(formElement) {
+  formElement.querySelectorAll('[data-error-for]').forEach(error => { error.textContent = ''; });
+  formElement.querySelectorAll('[aria-invalid="true"]').forEach(input => input.removeAttribute('aria-invalid'));
+  formElement.querySelectorAll('[data-row-error]').forEach(error => { error.textContent = ''; });
+}
+function setRegistrationFieldError(formElement, name, message) {
+  const error = formElement.querySelector('[data-error-for="' + name + '"]');
+  if (error) error.textContent = message;
+  formElement.querySelectorAll('[name="' + name + '"]').forEach(input => input.setAttribute('aria-invalid', 'true'));
+}
+function validEmailAddress(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+function validInternationalPhone(value) {
+  return /^\+[1-9]\d{7,14}$/.test(String(value || '').replace(/[\s()-]/g, ''));
+}
+function readRegistrationTargets(formElement, type) {
+  const platforms = [...formElement.querySelectorAll('[name="targetPlatforms"]:checked')].map(input => input.value);
+  const targets = {
+    email: String(formElement.querySelector('[name="targetEmail"]').value || '').trim().toLowerCase(),
+    phone: String(formElement.querySelector('[name="targetPhone"]').value || '').trim()
+  };
+  const result = {
+    scope: type === 'company' ? 'company' : 'individual',
+    platforms: platforms,
+    targets: targets,
+    authorized: Boolean(formElement.querySelector('[name="targetAuthorization"]').checked)
+  };
+  if (type === 'company') {
+    result.employeeContacts = [...formElement.querySelectorAll('.employee-target-row')].map(row => ({
+      name: row.querySelector('[data-employee-field="name"]').value.trim(),
+      email: row.querySelector('[data-employee-field="email"]').value.trim().toLowerCase(),
+      phone: row.querySelector('[data-employee-field="phone"]').value.trim(),
+      division: row.querySelector('[data-employee-field="division"]').value.trim()
+    })).filter(contact => contact.name || contact.email || contact.phone || contact.division);
+  }
+  return result;
+}
+function validateRegistrationForm(formElement, type, fields, targets) {
+  clearRegistrationErrors(formElement);
+  let valid = true;
+  const fail = (name, message) => { setRegistrationFieldError(formElement, name, message); valid = false; };
+  if (type === 'company') {
+    if (String(fields.companyName || '').trim().length < 2) fail('companyName', 'Masukkan nama organisasi minimal 2 karakter.');
+    if (!String(fields.contactName || '').trim()) fail('contactName', 'Masukkan nama kontak penanggung jawab.');
+    const size = Number(fields.size);
+    if (!Number.isInteger(size) || size < 1) fail('size', 'Masukkan jumlah karyawan berupa bilangan minimal 1.');
+  } else if (String(fields.displayName || '').trim().length < 2) {
+    fail('displayName', 'Masukkan nama lengkap minimal 2 karakter.');
+  }
+  const username = normalizeUsername(fields.username);
+  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) fail('username', 'ID pengguna harus 3–32 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.');
+  if (!validEmailAddress(fields.email)) fail('email', 'Masukkan alamat email akun dengan format yang benar.');
+  if (String(fields.password || '').length < 8) fail('password', 'Kata sandi harus memiliki minimal 8 karakter.');
+  if (!formElement.querySelector('[name="consent"]').checked) fail('consent', 'Centang pernyataan penggunaan prototype lokal untuk melanjutkan.');
+
+  if (!targets.platforms.length) fail('targetPlatforms', 'Pilih minimal satu platform simulasi.');
+  if (targets.platforms.includes('Email') && !targets.targets.email) {
+    fail('targetEmail', 'Alamat email target wajib diisi karena platform Email dipilih.');
+  } else if (targets.targets.email && !validEmailAddress(targets.targets.email)) {
+    fail('targetEmail', 'Masukkan alamat email target dengan format yang benar.');
+  }
+  const needsPhone = targets.platforms.includes('WhatsApp') || targets.platforms.includes('SMS');
+  if (needsPhone && !targets.targets.phone) {
+    fail('targetPhone', 'Nomor target wajib diisi karena WhatsApp atau SMS dipilih.');
+  } else if (targets.targets.phone && !validInternationalPhone(targets.targets.phone)) {
+    fail('targetPhone', 'Gunakan format internasional, misalnya +62 812-3456-7890.');
+  }
+  if (!targets.authorized) fail('targetAuthorization', 'Persetujuan otorisasi wajib dicentang sebelum registrasi.');
+
+  if (type === 'company') {
+    formElement.querySelectorAll('.employee-target-row').forEach(row => {
+      const values = {
+        name: row.querySelector('[data-employee-field="name"]').value.trim(),
+        email: row.querySelector('[data-employee-field="email"]').value.trim(),
+        phone: row.querySelector('[data-employee-field="phone"]').value.trim(),
+        division: row.querySelector('[data-employee-field="division"]').value.trim()
+      };
+      const used = Object.values(values).some(Boolean);
+      const rowFail = (key, message) => {
+        const input = row.querySelector('[data-employee-field="' + key + '"]');
+        const error = row.querySelector('[data-row-error="' + key + '"]');
+        if (input) input.setAttribute('aria-invalid', 'true');
+        if (error) error.textContent = message;
+        valid = false;
+      };
+      if (used && !values.name) rowFail('name', 'Masukkan nama untuk baris kontak ini.');
+      if (values.email && !validEmailAddress(values.email)) rowFail('email', 'Format email kantor belum benar.');
+      if (values.phone && !validInternationalPhone(values.phone)) rowFail('phone', 'Gunakan nomor internasional, misalnya +62 812-3456-7890.');
+    });
+  }
+  if (!valid) {
+    const invalid = formElement.querySelector('[aria-invalid="true"]');
+    if (invalid) invalid.focus({ preventScroll: true });
+  }
+  return valid;
 }
 function submitAccountForm(formElement, type) {
   const fields = Object.fromEntries(new FormData(formElement));
@@ -558,18 +808,18 @@ function submitAccountForm(formElement, type) {
     openAccount(account);
     return;
   }
+  const targets = readRegistrationTargets(formElement, type);
+  if (!validateRegistrationForm(formElement, type, fields, targets)) return;
   const username = normalizeUsername(fields.username);
-  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
-    showFormError('ID pengguna harus 3–32 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.');
-    return;
-  }
   const email = String(fields.email || '').trim().toLowerCase();
   if (accounts.some(item => item.username === username || item.id === username)) {
-    showFormError('ID pengguna tersebut sudah terdaftar. Pilih ID lain.');
+    setRegistrationFieldError(formElement, 'username', 'ID pengguna tersebut sudah terdaftar. Pilih ID lain.');
+    formElement.querySelector('[name="username"]').focus({ preventScroll: true });
     return;
   }
   if (accounts.some(item => item.email && item.email === email)) {
-    showFormError('Email tersebut sudah terhubung ke akun lain.');
+    setRegistrationFieldError(formElement, 'email', 'Email tersebut sudah terhubung ke akun lain.');
+    formElement.querySelector('[name="email"]').focus({ preventScroll: true });
     return;
   }
   const company = type === 'company';
@@ -589,11 +839,13 @@ function submitAccountForm(formElement, type) {
       industry: String(fields.industry || ''),
       targetSize: Math.max(1, Number(fields.size) || 1)
     } : null,
+    simulationTargets: targets,
     createdAt: createdAt,
     progress: createProgress()
   });
   accounts.push(account);
   persistAccounts();
+  registrationDrafts[type] = null;
   accountMessage = 'Akun berhasil dibuat dan disimpan di browser ini.';
   openAccount(account);
 }
@@ -1444,6 +1696,122 @@ function activeScenario() {
   if (!state.session) return null;
   return scenarioBank.find(item => item.id === state.session.ids[state.session.index]) || null;
 }
+function scenarioAttachment(scenario) {
+  if (scenario.attachment && scenario.attachment.name) return scenario.attachment;
+  const label = scenario.link ? String(scenario.link.label || '') : '';
+  const match = label.match(/(?:^|[\s:·])([^/\\\s:·]+\.(?:pdf|apk|zip|png|jpe?g|webp|docx?))$/i);
+  if (!match || !/\b(unggah|lampiran|terlampir|file)\b/i.test(scenario.message || '')) return null;
+  const extension = match[1].split('.').pop().toUpperCase();
+  return { name: match[1], type: extension, size: scenario.attachmentSize || '' };
+}
+function messageParagraphs(scenario, linkClass) {
+  const label = scenario.link && scenario.link.label ? safeText(scenario.link.label) : '';
+  return String(scenario.message || '').split(/\n\s*\n/).map(paragraph => {
+    let content = safeText(paragraph).replace(/\n/g, '<br>');
+    if (label) content = content.split(label).join('<span class="' + linkClass + '">' + label + '</span>');
+    return '<p>' + content + '</p>';
+  }).join('');
+}
+function simulatedLinkCard(scenario, variant) {
+  if (!scenario.link) return '';
+  let host = '';
+  try { host = new URL(scenario.link.url).hostname; } catch (error) { host = scenario.sender.domain || ''; }
+  return '<button type="button" class="simulated-link-card ' + variant + '" data-sim-action="analyze-link" aria-controls="link-inspector" aria-expanded="false" aria-label="Analisis tautan simulasi: ' + safeText(scenario.link.label) + '"><span class="sim-link-mark" aria-hidden="true">↗</span>' +
+    '<span class="simulated-link-copy"><b>' + safeText(scenario.link.label) + '</b><small>' + safeText(host) + '</small><small class="sim-link-action">Periksa tujuan</small></span></button>';
+}
+function scenarioAddress(scenario) {
+  try {
+    const url = new URL(scenario.link.url);
+    return url.hostname + url.pathname + url.search;
+  } catch (error) {
+    return scenario.sender.domain || scenario.sender.address || '';
+  }
+}
+function simulatedAttachmentCard(scenario, variant) {
+  const file = scenarioAttachment(scenario);
+  if (!file) return '';
+  const type = String(file.type || String(file.name).split('.').pop() || 'FILE').toUpperCase();
+  const typeClass = type.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const size = file.size ? ' · ' + safeText(file.size) : '';
+  return '<div class="simulated-attachment ' + variant + '" role="group" aria-label="Lampiran simulasi ' + safeText(file.name) + '"><span class="attachment-type' + (typeClass ? ' attachment-' + typeClass : '') + '" aria-hidden="true">' + safeText(type) +
+    '</span><span class="attachment-copy"><b>' + safeText(file.name) + '</b><small>' + safeText(type) + ' · lampiran simulasi' + size + '</small></span><span class="attachment-preview">Pratinjau</span></div>';
+}
+function renderWhatsAppMessage(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  const hasInlineLink = scenario.link && String(scenario.message).includes(scenario.link.label);
+  const attachment = simulatedAttachmentCard(scenario, 'wa-attachment');
+  const link = !hasInlineLink && !attachment ? simulatedLinkCard(scenario, 'wa-link') : '';
+  return '<div class="message-app whatsapp-app"><header class="whatsapp-toolbar"><span class="app-back" aria-hidden="true">‹</span><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) +
+    '</span><span class="app-contact"><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.address || sender.role) + '</small></span><span class="app-name">WhatsApp</span><span class="app-info" aria-hidden="true">i</span></header>' +
+    '<section class="whatsapp-chat" aria-label="Percakapan WhatsApp simulasi"><div class="chat-day-label">PESAN SIMULASI</div><div class="whatsapp-bubble">' +
+    '<div class="chat-message-copy">' + messageParagraphs(scenario, 'message-inline-link') + '</div>' + attachment + link + '<div class="bubble-meta"><time>' + safeText(scenario.time) + '</time><span class="message-checks" aria-hidden="true">✓✓</span></div></div></section>' +
+    '</div>';
+}
+function renderSmsMessage(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  const hasInlineLink = scenario.link && String(scenario.message).includes(scenario.link.label);
+  return '<div class="message-app sms-app"><header class="sms-toolbar"><span class="app-back" aria-hidden="true">‹</span><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) +
+    '</span><span class="app-contact"><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.address || sender.role) + '</small></span><span class="sms-info" aria-hidden="true">⋮</span></header>' +
+    '<section class="sms-chat" aria-label="SMS simulasi"><div class="sms-time-divider"><span>Pesan masuk</span><time>' + safeText(scenario.time) + '</time></div><div class="sms-bubble">' +
+    messageParagraphs(scenario, 'message-inline-link') + (!hasInlineLink ? simulatedLinkCard(scenario, 'sms-link') : '') + simulatedAttachmentCard(scenario, 'sms-attachment') + '</div></section>' +
+    '</div>';
+}
+function renderEmailMessage(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  const hasInlineLink = scenario.link && String(scenario.message).includes(scenario.link.label);
+  const link = scenario.link && !hasInlineLink ? simulatedLinkCard(scenario, 'email-link') : '';
+  return '<div class="message-app email-app"><div class="email-app-bar"><span class="email-app-mark" aria-hidden="true">✉</span><span>Email</span><span class="email-demo-label">KOTAK MASUK</span></div><article class="email-paper" aria-label="Email simulasi"><div class="email-subject-row"><h3>' +
+    safeText(scenario.subject) + '</h3><span class="email-more" aria-hidden="true">⋮</span></div><div class="email-sender-row"><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) + '</span><span class="email-sender-copy"><b>' +
+    safeText(sender.name) + '</b><small>' + safeText(sender.address) + '</small></span><time>' + safeText(scenario.time) + '</time></div><p class="email-to-line">kepada saya <span aria-hidden="true">⌄</span></p><div class="email-body-copy">' +
+    messageParagraphs(scenario, 'message-inline-link') + link + simulatedAttachmentCard(scenario, 'email-attachment') + '</div></article></div>';
+}
+function renderAccountNotification(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  const hasInlineLink = scenario.link && String(scenario.message).includes(scenario.link.label);
+  const link = scenario.link && !hasInlineLink ? simulatedLinkCard(scenario, 'notification-link') : '';
+  return '<div class="message-app account-notification-app"><div class="notification-device-label">NOTIFIKASI</div><article class="account-notification" aria-label="Notifikasi keamanan simulasi">' +
+    '<header class="notification-app-header"><span class="notification-app-icon" aria-hidden="true">' + iconSvg('Notifikasi akun') + '</span><span class="notification-app-name"><b>' +
+    safeText(sender.name) + '</b><small>' + safeText(sender.role) + '</small></span><time>' + safeText(scenario.time) + '</time></header><div class="notification-content"><div class="notification-kind">PEMBERITAHUAN KEAMANAN</div><h3>' +
+    safeText(scenario.title) + '</h3><p class="notification-subject">' + safeText(scenario.subject) + '</p><div class="notification-copy">' + messageParagraphs(scenario, 'message-inline-link') + '</div>' + link +
+    '<div class="notification-service"><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) + '</span><span><small>LAYANAN</small><b>' +
+    safeText(sender.domain || sender.address) + '</b></span><span class="notification-status">Simulasi</span></div></div></article></div>';
+}
+function websiteLoginPreview() {
+  return '<div class="website-login-preview" role="group" aria-label="Formulir login simulasi nonaktif"><span class="website-form-kicker">MASUK KE PORTAL</span><label>Email pengguna<input type="email" disabled autocomplete="off" placeholder="nama@organisasi.example"></label>' +
+    '<label>Kata sandi<input type="password" disabled autocomplete="off" placeholder="Tidak menerima kata sandi"></label><button type="button" disabled>Masuk · nonaktif</button><small>Pratinjau visual saja. Kolom ini tidak menerima atau menyimpan data.</small></div>';
+}
+function renderWebsitePreview(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  const loginContext = /login|masuk|password|kata sandi|kredensial/i.test([scenario.title, scenario.subject, scenario.message].join(' '));
+  return '<div class="message-app website-app"><header class="browser-chrome"><div class="browser-controls" aria-hidden="true"><span>‹</span><span>›</span><span>↻</span></div><div class="browser-address"><span class="browser-globe" aria-hidden="true">◎</span><span>' +
+    safeText(scenarioAddress(scenario)) + '</span></div><span class="browser-preview-tag">PRATINJAU LOKAL</span></header><section class="website-page" aria-label="Halaman website simulasi"><header class="website-brandbar"><span class="website-brand-icon" style="--sender-color:' + safeText(sender.color) + '">' +
+    safeText(initials) + '</span><span class="website-brand-copy"><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.role) + '</small></span><span class="website-nav-label">Portal</span></header><main class="website-content"><span class="website-page-kicker">' +
+    safeText(scenario.subject) + '</span><h3>' + safeText(scenario.title) + '</h3><div class="website-message-copy">' + messageParagraphs(scenario, 'message-inline-link') + '</div>' +
+    (loginContext ? websiteLoginPreview() : '') + '<div class="website-preview-status"><span class="preview-status-dot"></span><span><b>Lingkungan simulasi edukasi</b><small>Alamat hanya ditampilkan sebagai teks. Halaman tidak terhubung ke layanan atau mengirim data.</small></span></div></main></section></div>';
+}
+function renderLegacyMessage(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  return '<header class="sim-sender"><div class="sender-avatar" style="--sender-color:' + safeText(sender.color) + '"><span>' + safeText(initials) +
+    '</span></div><div class="sender-copy"><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.role) + '</small></div><span class="channel-icon" title="Kanal ' +
+    safeText(scenario.channel) + '">' + iconSvg(scenario.channel) + '<span>' + safeText(scenario.channel) + '</span></span></header><div class="sim-message-meta"><b>' +
+    safeText(scenario.subject) + '</b><time>' + safeText(scenario.time) + '</time></div><div class="sim-message-body">' + messageParagraphs(scenario, 'sim-link-label') +
+    (scenario.link ? '<p class="sim-link-label">Teks tautan dalam pesan: <span>' + safeText(scenario.link.label) + '</span></p>' : '') + '</div>' +
+    '<footer class="sim-message-footer"><span>' + iconSvg(scenario.channel) + ' ' + safeText(scenario.channel) + '</span></footer>';
+}
+function renderScenarioMessage(scenario) {
+  if (scenario.channel === 'WhatsApp') return renderWhatsAppMessage(scenario);
+  if (scenario.channel === 'SMS') return renderSmsMessage(scenario);
+  if (scenario.channel === 'Email') return renderEmailMessage(scenario);
+  if (scenario.channel === 'Notifikasi akun') return renderAccountNotification(scenario);
+  if (scenario.channel === 'Website') return renderWebsitePreview(scenario);
+  return renderLegacyMessage(scenario);
+}
 function inspectPanel(scenario) {
   const sender = scenario.sender;
   return '<div class="sim-inspector" id="sender-inspector" hidden><div><span>Dari / pengirim</span><b>' + safeText(sender.address) +
@@ -1507,9 +1875,9 @@ function simulation(page) {
   if (!scenario) { state.session = null; save(); sessionIntro(page); return; }
   const priorAnswer = session.answers[session.index];
   const progress = priorAnswer ? session.index + 1 : session.index;
-  const sender = scenario.sender;
+  const messageMarkup = renderScenarioMessage(scenario);
   const answerMarkup = priorAnswer
-    ? '<div class="choices"><button class="choice" disabled>' + (priorAnswer.choice === 'phish' ? 'Tandai phishing' : 'Tandai legitimate') + '</button></div>'
+    ? '<div class="choices"><button class="choice ' + (priorAnswer.choice === 'phish' ? 'choice-phish' : 'choice-legit') + '" disabled aria-disabled="true">' + (priorAnswer.choice === 'phish' ? 'Tandai phishing' : 'Tandai legitimate') + '</button></div>'
     : '<div class="choices"><button class="choice choice-phish" data-sim-action="answer" data-answer="phish">Tandai phishing</button>' +
       '<button class="choice choice-legit" data-sim-action="answer" data-answer="legit">Tandai legitimate</button></div>';
   const feedbackMarkup = priorAnswer
@@ -1522,16 +1890,8 @@ function simulation(page) {
     : '';
   page.innerHTML = '<div class="grid simulate-layout"><section class="card scenario-card"><div class="scenario-head"><div><span class="eyebrow">' +
     safeText(scenario.channel) + ' · ' + safeText(scenario.difficulty) + '</span><h2>' + safeText(scenario.title) + '</h2></div>' +
-    '<span class="tag">' + (priorAnswer ? safeText(scenario.category) : 'Kategori belum diungkap') + '</span></div><article class="sim-message"><header class="sim-sender">' +
-    '<div class="sender-avatar" style="--sender-color:' + safeText(sender.color) + '"><span>' + safeText(sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('')) +
-    '</span></div><div class="sender-copy"><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.role) + '</small></div><span class="channel-icon" title="Kanal ' +
-    safeText(scenario.channel) + '">' + iconSvg(scenario.channel) + '<span>' + safeText(scenario.channel) + '</span></span></header><div class="sim-message-meta"><b>' +
-    safeText(scenario.subject) + '</b><time>' + safeText(scenario.time) + '</time></div><div class="sim-message-body">' +
-    safeText(scenario.message).replace(/\n/g, '<br>') + (scenario.link ? '<p class="sim-link-label">Teks tautan dalam pesan: <span>' + safeText(scenario.link.label) + '</span></p>' : '') +
-    '</div>' + (scenario.channel === 'Website' ? '<div class="fake-site-preview"><span>Halaman web simulasi</span><b>' +
-      safeText(scenario.link ? scenario.link.label : sender.domain) + '</b><small>Pratinjau statis · tidak menerima kredensial</small></div>' : '') +
-    '<footer class="sim-message-footer"><span>Contoh fiktif · tidak dikirim</span><span>' + iconSvg(scenario.channel) + ' ' + safeText(scenario.channel) +
-    '</span></footer></article><div class="inspection-actions"><button class="ghost" data-sim-action="inspect-sender" aria-expanded="false">Lihat pengirim & konteks</button>' +
+    '<span class="tag">' + (priorAnswer ? safeText(scenario.category) : 'Kategori belum diungkap') + '</span></div><div class="simulation-status"><span>SIMULASI EDUKASI</span><small>Tautan tidak membuka situs atau layanan</small></div><div class="sim-message message-host">' + messageMarkup +
+    '</div><div class="inspection-actions"><button class="ghost" data-sim-action="inspect-sender" aria-expanded="false">Lihat pengirim & konteks</button>' +
     '<button class="ghost" data-sim-action="analyze-link" aria-expanded="false">' + (scenario.link ? 'Analisis tautan' : 'Periksa detail pesan') + '</button></div>' +
     inspectPanel(scenario) + linkPanel(scenario) + '<p class="muted answer-prompt">Menurut Anda, pesan simulasi ini phishing atau legitimate?</p>' + answerMarkup + feedbackMarkup +
     '</section><aside class="card session-aside"><span class="eyebrow">PROGRES SESI</span><div class="mini-score">' + progress +
@@ -1588,6 +1948,11 @@ function toggleInspector(id, button) {
   if (!panel) return;
   panel.hidden = !panel.hidden;
   button.setAttribute('aria-expanded', String(!panel.hidden));
+  const embeddedAction = button.querySelector('.sim-link-action');
+  if (embeddedAction) {
+    embeddedAction.textContent = panel.hidden ? 'Periksa tujuan' : 'Tutup detail';
+    return;
+  }
   button.textContent = panel.hidden
     ? (id === 'sender-inspector' ? 'Lihat pengirim & konteks' : (activeScenario() && activeScenario().link ? 'Analisis tautan' : 'Periksa detail pesan'))
     : 'Tutup detail';
