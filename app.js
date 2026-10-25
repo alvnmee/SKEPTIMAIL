@@ -41,6 +41,7 @@ function createProgress(input) {
     streak: Math.max(0, Number(source.streak) || 0),
     maxStreak: Math.max(0, Number(source.maxStreak) || 0),
     history: Array.isArray(source.history) ? source.history : [],
+    learningEvents: Array.isArray(source.learningEvents) ? source.learningEvents : [],
     weak: source.weak && typeof source.weak === 'object' ? source.weak : {},
     recognized: source.recognized && typeof source.recognized === 'object' ? source.recognized : {},
     badges: Array.isArray(source.badges) ? source.badges : [],
@@ -334,6 +335,130 @@ function score() {
 function level(xp) {
   return Math.floor((Number(xp === undefined ? state.xp : xp) || 0) / 200) + 1;
 }
+function levelProgress(xp) {
+  const totalXp = Math.max(0, Number(xp === undefined ? state.xp : xp) || 0);
+  const currentLevel = level(totalXp);
+  const levelStartXp = (currentLevel - 1) * 200;
+  const nextLevelXp = currentLevel * 200;
+  const earnedInLevel = totalXp - levelStartXp;
+  return {
+    level: currentLevel,
+    currentXp: totalXp,
+    levelStartXp: levelStartXp,
+    nextLevelXp: nextLevelXp,
+    xpToNext: nextLevelXp - totalXp,
+    percent: Math.min(100, Math.max(0, earnedInLevel / (nextLevelXp - levelStartXp) * 100))
+  };
+}
+function parseActivityTimestamp(item) {
+  if (!item || typeof item !== 'object') return null;
+  if (item.at) {
+    const timestamp = Date.parse(item.at);
+    if (Number.isFinite(timestamp)) return new Date(timestamp);
+  }
+  const raw = String(item.date || '').trim();
+  const localDate = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,?\s+(\d{1,2})[.:](\d{2})(?:[.:](\d{2}))?)?$/.exec(raw);
+  if (localDate) {
+    const parsed = new Date(Number(localDate[3]), Number(localDate[2]) - 1, Number(localDate[1]), Number(localDate[4] || 0), Number(localDate[5] || 0), Number(localDate[6] || 0));
+    if (parsed.getFullYear() === Number(localDate[3]) && parsed.getMonth() === Number(localDate[2]) - 1 && parsed.getDate() === Number(localDate[1])) return parsed;
+  }
+  const timestamp = Date.parse(raw);
+  return Number.isFinite(timestamp) ? new Date(timestamp) : null;
+}
+function localDayKey(date) {
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+function learningActivity(progress) {
+  const source = progress || state;
+  const events = [];
+  (Array.isArray(source.history) ? source.history : []).forEach(item => {
+    const at = parseActivityTimestamp(item);
+    if (at) events.push({ at: at, type: 'simulation' });
+  });
+  (Array.isArray(source.learningEvents) ? source.learningEvents : []).forEach(item => {
+    const at = parseActivityTimestamp(item);
+    if (at && item.type === 'quiz') events.push({ at: at, type: 'quiz' });
+  });
+  return events.filter(event => event.at.getTime() <= Date.now());
+}
+function learningStreak(progress, activityEvents) {
+  const events = activityEvents || learningActivity(progress);
+  const days = [...new Set(events.map(event => localDayKey(event.at)))].sort();
+  if (!days.length) return { current: 0, record: 0, activeDays: days.length };
+  const serials = days.map(day => {
+    const parts = day.split('-').map(Number);
+    return Math.floor(Date.UTC(parts[0], parts[1] - 1, parts[2]) / 86400000);
+  });
+  let record = 0;
+  let run = 0;
+  let previous = null;
+  serials.forEach(serial => {
+    run = previous !== null && serial === previous + 1 ? run + 1 : 1;
+    record = Math.max(record, run);
+    previous = serial;
+  });
+  const today = new Date();
+  const todaySerial = Math.floor(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) / 86400000);
+  const lastSerial = serials[serials.length - 1];
+  let current = 0;
+  if (lastSerial >= todaySerial - 1 && lastSerial <= todaySerial) {
+    current = 1;
+    for (let index = serials.length - 2; index >= 0 && serials[index] === serials[index + 1] - 1; index--) current++;
+  }
+  return { current: current, record: record, activeDays: days.length };
+}
+function badgeDefinitions(progress) {
+  const source = progress || state;
+  const history = Array.isArray(source.history) ? source.history : [];
+  const correctLinks = history.filter(item => item.ok && (item.cat || item.category) === 'Fake links').length;
+  const correctImpersonations = history.filter(item => item.ok && (item.cat || item.category) === 'Impersonation').length;
+  return [
+    { id: 'hunter', icon: '<path d="M12 3 19 6v5c0 4.5-2.9 7.6-7 10-4.1-2.4-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/>', name: 'Phishing Hunter', description: 'Bangun ketelitian lewat keputusan simulasi yang tepat.', criterion: 'Jawab 3 skenario simulasi dengan benar.', progress: Math.max(0, Number(source.correct) || 0), target: 3 },
+    { id: 'link', icon: '<path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/><path d="m9 15 6-6"/>', name: 'Link Detective', description: 'Periksa domain dan tujuan tautan sebelum memercayainya.', criterion: 'Kenali 2 skenario kategori tautan palsu dengan benar.', progress: correctLinks, target: 2 },
+    { id: 'imp', icon: '<path d="M12 3 19 6v5c0 4.5-2.9 7.6-7 10-4.1-2.4-7-5.5-7-10V6l7-3Z"/><path d="M9 10h.01M15 10h.01M9 14c1.7 1.5 4.3 1.5 6 0"/>', name: 'Impersonation Expert', description: 'Pastikan identitas pengirim sesuai kanal dan konteksnya.', criterion: 'Kenali 2 skenario impersonasi dengan benar.', progress: correctImpersonations, target: 2 },
+    { id: 'streak', icon: '<path d="M12 3c1 3-1 4.5-1 6.5 0 1.2.8 2 1.8 2 1.6 0 2.2-1.8 2-3.2 2.2 1.8 3.7 4.1 3.7 6.6a6.5 6.5 0 0 1-13 0c0-3.6 2.4-6.8 6.5-11.9Z"/><path d="M10 17.5a2 2 0 0 0 4 0c0-.9-.7-1.8-2-3-1.3 1.2-2 2.1-2 3Z"/>', name: 'Perfect Streak', description: 'Pertahankan fokus dalam rangkaian jawaban yang tepat.', criterion: 'Berikan 3 jawaban benar berturut-turut.', progress: Math.max(0, Number(source.streak) || 0), target: 3 }
+  ].map(badge => ({ ...badge, progress: Math.min(badge.target, badge.progress), unlocked: badge.id === 'streak' ? (Number(source.maxStreak) || 0) >= badge.target : badge.progress >= badge.target }));
+}
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] || '?').slice(0, 2)).toUpperCase();
+}
+function activityCalendarMarkup(progress, activityEvents, streakStats) {
+  const events = activityEvents || learningActivity(progress);
+  const counts = new Map();
+  events.forEach(event => {
+    const key = localDayKey(event.at);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(today);
+  start.setDate(start.getDate() - 27);
+  const dates = Array.from({ length: 28 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return date;
+  });
+  const recentCount = dates.reduce((sum, date) => sum + (counts.get(localDayKey(date)) || 0), 0);
+  const weekdays = dates.slice(0, 7).map(date => new Intl.DateTimeFormat('id-ID', { weekday: 'short' }).format(date));
+  const cells = dates.map(date => {
+    const count = counts.get(localDayKey(date)) || 0;
+    const label = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long' }).format(date);
+    return '<div class="activity-day ' + (count ? 'is-active' : '') + (localDayKey(date) === localDayKey(today) ? ' is-today' : '') + '" role="img" aria-label="' + esc(label + ': ' + (count ? count + ' aktivitas belajar' : 'tidak ada aktivitas')) + '" title="' + esc(label + ' · ' + (count ? count + ' aktivitas' : 'tanpa aktivitas')) + '"><span>' + date.getDate() + '</span>' + (count ? '<i aria-hidden="true"></i>' : '') + '</div>';
+  }).join('');
+  const streak = streakStats || learningStreak(progress, events);
+  const emptyMessage = recentCount
+    ? ''
+    : events.length
+      ? '<p class="muted activity-empty-note">Tidak ada aktivitas dalam 28 hari terakhir. Riwayat sebelumnya tetap tersimpan.</p>'
+      : '<p class="muted activity-empty-note">Belum ada riwayat simulasi atau kuis yang selesai. Jawaban simulasi dan kuis yang dituntaskan akan tercatat di sini.</p>';
+  return '<section class="card activity-calendar" aria-labelledby="activity-calendar-title"><div class="section-title"><div><p class="eyebrow">KEBIASAAN BELAJAR</p><h2 id="activity-calendar-title">Aktivitas 28 hari terakhir</h2></div><span class="tag">' + recentCount + ' aktivitas</span></div>' +
+    '<div class="calendar-weekdays" aria-hidden="true">' + weekdays.map(day => '<span>' + esc(day) + '</span>').join('') + '</div>' +
+    '<div class="activity-calendar-grid">' + cells + '</div>' + emptyMessage +
+    '<div class="streak-summary"><div><span class="streak-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3c1 3-1 4.5-1 6.5 0 1.2.8 2 1.8 2 1.6 0 2.2-1.8 2-3.2 2.2 1.8 3.7 4.1 3.7 6.6a6.5 6.5 0 0 1-13 0c0-3.6 2.4-6.8 6.5-11.9Z"/></svg></span><span><small>Streak belajar aktif</small><b>' + streak.current + ' hari</b></span></div>' +
+    '<div><span class="streak-record" aria-hidden="true">↗</span><span><small>Rekor streak belajar</small><b>' + streak.record + ' hari</b></span></div></div>' +
+    '<p class="calendar-footnote">Satu hari dihitung sekali, meski ada beberapa jawaban pada hari yang sama. Kuis tercatat saat selesai; kuis tidak menambah XP simulasi.</p></section>';
+}
 function esc(value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, character => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -570,44 +695,74 @@ function dashboard(page) {
   document.querySelector('#go-sim').addEventListener('click', () => { view = 'simulation'; app(); });
 }
 function game(page) {
-  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const cutoff = now - 7 * 24 * 60 * 60 * 1000;
   const people = accounts.filter(account => account.role === 'individual' && !isDemoAccount(account)).map(account => {
     const progress = createProgress(account.progress);
     const weekXp = progress.xpEvents.reduce((sum, event) => {
       const timestamp = Date.parse(event.at || '');
-      return timestamp >= cutoff && timestamp <= Date.now() ? sum + Math.max(0, Number(event.xp) || 0) : sum;
+      return timestamp >= cutoff && timestamp <= now ? sum + Math.max(0, Number(event.xp) || 0) : sum;
     }, 0);
-    return { account, progress, xp: leaderboardPeriod === 'week' ? weekXp : progress.xp };
+    return { account: account, progress: progress, xp: leaderboardPeriod === 'week' ? weekXp : progress.xp };
   }).filter(person => leaderboardPeriod === 'all' || person.xp > 0)
     .sort((left, right) => right.xp - left.xp ||
-      String(left.account.createdAt).localeCompare(String(right.account.createdAt)) ||
-      left.account.username.localeCompare(right.account.username) ||
-      left.account.id.localeCompare(right.account.id));
+      (Date.parse(left.account.createdAt) || 0) - (Date.parse(right.account.createdAt) || 0) ||
+      left.account.username.localeCompare(right.account.username, 'id') ||
+      left.account.id.localeCompare(right.account.id, 'id'));
+  const currentStanding = people.findIndex(person => person.account.id === currentAccount.id);
   const rows = people.length
-    ? people.map((person, index) => '<tr><td class="medal">' + (index + 1) + '</td><td>' + safeText(person.account.displayName) +
-      (person.account.id === currentAccount.id ? ' <span class="tag">Anda</span>' : '') +
-      '<br><small class="muted">@' + safeText(person.account.username) + '</small></td><td>' + level(person.xp) + '</td><td><b>' + person.xp + ' XP</b></td></tr>').join('')
-    : '<tr><td colspan="4" class="muted">Belum ada aktivitas XP dalam 7 hari terakhir. Peringkat mingguan akan terisi dari simulasi yang benar-benar diselesaikan.</td></tr>';
-  const badges = [
-    ['hunter', '◈', 'Phishing Hunter', 'Selesaikan 3 jawaban benar'],
-    ['link', '⌁', 'Link Detective', 'Kenali 2 tautan palsu'],
-    ['imp', '◉', 'Impersonation Expert', 'Kenali 2 impersonation'],
-    ['streak', '★', 'Perfect Streak', '3 jawaban benar beruntun']
-  ];
+    ? people.map((person, index) => {
+      const place = index + 1;
+      const isCurrent = person.account.id === currentAccount.id;
+      const placeLabel = place <= 3 ? 'Top ' + place : 'Peringkat ' + place;
+      return '<tr class="leaderboard-row rank-' + (place <= 3 ? place : 'other') + (isCurrent ? ' is-current' : '') + '"><td><span class="place-chip" aria-label="' + placeLabel + '">' + place + '</span></td>' +
+        '<td><div class="leaderboard-person"><span class="leaderboard-avatar ' + (isCurrent ? 'is-current' : '') + '" aria-hidden="true">' + esc(initials(person.account.displayName)) + '</span><span class="leaderboard-name"><b>' + safeText(person.account.displayName) +
+        (isCurrent ? ' <span class="you-marker">Anda</span>' : '') + '<small>@' + safeText(person.account.username) + '</small></span></div></td><td>Lv ' + level(person.progress.xp) + '</td><td><b>' + person.xp + ' XP</b></td></tr>';
+    }).join('')
+    : '<tr><td colspan="4"><div class="leaderboard-empty"><b>Belum ada XP pada periode ini</b><span>Selesaikan simulasi untuk mengisi peringkat dari hasil yang benar-benar tercatat.</span></div></td></tr>';
+  const progress = levelProgress();
+  const badges = badgeDefinitions(state);
+  const unlockedCount = badges.filter(badge => badge.unlocked).length;
+  const activityEvents = learningActivity(state);
+  const dayStreak = learningStreak(state, activityEvents);
+  const nextBadge = badges.filter(badge => !badge.unlocked).map(badge => ({ ...badge, remaining: Math.max(0, badge.target - badge.progress) }))
+    .sort((left, right) => left.remaining / left.target - right.remaining / right.target || left.remaining - right.remaining)[0];
+  const nextStep = nextBadge
+    ? { target: 'simulation', title: 'Satu langkah menuju ' + nextBadge.name, text: (nextBadge.id === 'streak'
+      ? 'Berikan ' + nextBadge.remaining + ' jawaban benar berturut-turut'
+      : (nextBadge.id === 'hunter' ? 'Jawab ' + nextBadge.remaining + ' skenario simulasi dengan benar' : 'Kenali ' + nextBadge.remaining + ' skenario ' + (nextBadge.id === 'link' ? 'tautan palsu' : 'impersonasi') + ' dengan benar')) + ' untuk membuka badge. Progres saat ini: ' + nextBadge.progress + '/' + nextBadge.target + '.', button: 'Lanjutkan simulasi' }
+    : { target: 'education', title: 'Semua badge sudah terbuka', text: 'Pertahankan kebiasaan verifikasi dengan meninjau materi edukasi dan mencoba contoh baru.', button: 'Buka materi edukasi' };
+  const weeklyNote = leaderboardPeriod === 'week' && currentStanding < 0
+    ? '<p class="leaderboard-self-note">Akun Anda belum memiliki XP pada periode 7 hari ini, jadi belum memiliki posisi mingguan.</p>'
+    : '';
+  const badgeCards = badges.map(badge => {
+    const value = badge.id === 'streak' ? Math.min(badge.target, Number(state.maxStreak) || 0) : badge.progress;
+    const percent = Math.min(100, value / badge.target * 100);
+    const status = badge.unlocked ? 'Terbuka' : 'Terkunci';
+    return '<article class="card achievement-badge ' + (badge.unlocked ? 'is-unlocked' : 'is-locked') + '"><div class="badge-topline"><span class="badge-icon" aria-hidden="true"><svg viewBox="0 0 24 24">' + badge.icon + '</svg></span><span class="badge-status ' + (badge.unlocked ? 'status-open' : 'status-locked') + '">' + status + '</span></div>' +
+      '<div><h3>' + badge.name + '</h3><p class="badge-description">' + badge.description + '</p></div><p class="badge-criterion"><b>Kriteria</b><span>' + badge.criterion + '</span></p>' +
+      '<div class="badge-progress-copy"><span>' + (badge.unlocked ? 'Syarat terpenuhi' : 'Progres') + '</span><b>' + value + '/' + badge.target + '</b></div><div class="progress badge-progress" role="progressbar" aria-label="Progres ' + badge.name + '" aria-valuemin="0" aria-valuemax="' + badge.target + '" aria-valuenow="' + value + '"><span style="width:' + percent + '%"></span></div></article>';
+  }).join('');
+  const percentLabel = Math.round(progress.percent);
   page.innerHTML =
-    '<div class="filters"><button type="button" class="filter ' + (leaderboardPeriod === 'all' ? 'active' : '') + '" data-action="leaderboard-period" data-period="all" aria-pressed="' + (leaderboardPeriod === 'all') + '">Keseluruhan</button>' +
-    '<button type="button" class="filter ' + (leaderboardPeriod === 'week' ? 'active' : '') + '" data-action="leaderboard-period" data-period="week" aria-pressed="' + (leaderboardPeriod === 'week') + '">7 hari terakhir</button></div>' +
-    '<p class="muted">' + (leaderboardPeriod === 'week'
-      ? 'XP dihitung dari catatan jawaban benar selama 7 hari terakhir. Akun tanpa aktivitas periode ini tidak ditampilkan.'
-      : 'XP total dari akun individu terdaftar. Jika XP sama, akun yang lebih dahulu dibuat berada lebih tinggi; ID menjadi pemecah seri berikutnya.') + '</p>' +
-    '<div class="grid two"><section class="card"><div class="section-title"><h2>Leaderboard XP</h2><span class="tag">' + (leaderboardPeriod === 'all' ? 'seluruh waktu' : '7 hari') + '</span></div>' +
-    '<div class="table-wrap"><table><thead><tr><th>#</th><th>Peserta</th><th>Level</th><th>XP</th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' +
-    '<section class="card"><p class="eyebrow">AKUN ANDA · LEVEL ' + level() + '</p><h2>' + state.xp + ' XP</h2><p class="muted">' + (200 - state.xp % 200) + ' XP menuju Level ' + (level() + 1) + '</p>' +
-    '<div class="progress"><span style="width:' + (state.xp % 200 / 2) + '%"></span></div><p class="muted" style="margin-top:20px">Streak aktif: <b>' + state.streak + '</b> · Terbaik: <b>' + state.maxStreak + '</b></p></section></div>' +
-    '<h2 style="margin-top:28px">Badge collection</h2><div class="badge-grid">' + badges.map(badge =>
-      '<article class="card badge ' + (state.badges.includes(badge[0]) ? '' : 'locked') + '"><div class="seal">' + badge[1] + '</div><b>' + badge[2] +
-      '</b><small class="muted">' + badge[3] + '</small><small>' + (state.badges.includes(badge[0]) ? 'Terbuka' : 'Terkunci') + '</small></article>'
-    ).join('') + '</div>';
+    '<section class="achievement-hero card"><div class="achievement-hero-main"><div class="achievement-identity"><span class="level-emblem"><small>LEVEL</small><b>' + progress.level + '</b></span><div><p class="eyebrow">PERJALANAN BELAJAR ANDA</p><h2>' + safeText(currentAccount.displayName) + '</h2><p class="muted">@' + safeText(currentAccount.username) + ' · konsistensi membangun ketahanan digital</p></div></div>' +
+    '<div class="xp-display"><span>Total pengalaman</span><strong>' + progress.currentXp.toLocaleString('id-ID') + '<small> XP</small></strong></div><div class="level-progress-heading"><b>Progres ke Level ' + (progress.level + 1) + '</b><span>' + progress.xpToNext.toLocaleString('id-ID') + ' XP lagi · ' + percentLabel + '%</span></div>' +
+    '<div class="progress level-progress" role="progressbar" aria-label="Progres menuju Level ' + (progress.level + 1) + '" aria-valuemin="0" aria-valuemax="200" aria-valuenow="' + (progress.currentXp - progress.levelStartXp) + '"><span style="width:' + progress.percent + '%"></span></div><div class="level-range"><span>Level ' + progress.level + ' dimulai di ' + progress.levelStartXp.toLocaleString('id-ID') + ' XP</span><span>Berikutnya ' + progress.nextLevelXp.toLocaleString('id-ID') + ' XP</span></div></div>' +
+    '<div class="achievement-quick-stats"><div class="quick-stat"><span class="quick-stat-icon" aria-hidden="true">✓</span><span><small>Jawaban tepat</small><b>' + state.correct + ' jawaban</b></span></div><div class="quick-stat"><span class="quick-stat-icon xp-icon" aria-hidden="true">XP</span><span><small>Total XP</small><b>' + progress.currentXp.toLocaleString('id-ID') + ' XP</b></span></div><div class="quick-stat"><span class="quick-stat-icon streak-icon" aria-hidden="true">◷</span><span><small>Streak aktif · rekor</small><b>' + dayStreak.current + ' · ' + dayStreak.record + ' hari</b></span></div><div class="quick-stat"><span class="quick-stat-icon badge-count-icon" aria-hidden="true">✦</span><span><small>Badge terbuka</small><b>' + unlockedCount + ' dari ' + badges.length + '</b></span></div></div></section>' +
+    '<section class="card next-achievement"><div class="next-achievement-copy"><p class="eyebrow">LANGKAH BERIKUTNYA</p><h2>' + nextStep.title + '</h2><p>' + nextStep.text + '</p></div><button type="button" class="primary" data-game-nav="' + nextStep.target + '">' + nextStep.button + '<span aria-hidden="true"> →</span></button></section>' +
+    '<section class="leaderboard-section"><div class="leaderboard-heading"><div><p class="eyebrow">BELAJAR BERSAMA</p><h2>Leaderboard XP</h2><p class="muted">Bandingkan progres dengan peserta nyata di perangkat ini.</p></div><div class="filters" role="group" aria-label="Periode leaderboard"><button type="button" class="filter ' + (leaderboardPeriod === 'all' ? 'active' : '') + '" data-action="leaderboard-period" data-period="all" aria-pressed="' + (leaderboardPeriod === 'all') + '">Keseluruhan</button>' +
+    '<button type="button" class="filter ' + (leaderboardPeriod === 'week' ? 'active' : '') + '" data-action="leaderboard-period" data-period="week" aria-pressed="' + (leaderboardPeriod === 'week') + '">7 hari terakhir</button></div></div>' +
+    '<section class="card leaderboard-card"><div class="leaderboard-context"><span class="tag">' + (leaderboardPeriod === 'all' ? 'Seluruh waktu' : '7 hari terakhir') + '</span><p>' + (leaderboardPeriod === 'week'
+      ? 'XP dari jawaban simulasi benar yang tercatat selama 7 hari terakhir. Peserta tanpa XP pada periode ini tidak diberi posisi mingguan.'
+      : 'XP total akun individu. Jika XP sama, akun yang dibuat lebih dahulu berada di atas; username lalu ID menjadi pemecah seri.') + '</p></div>' + weeklyNote +
+    '<div class="table-wrap"><table class="leaderboard-table"><thead><tr><th scope="col">Posisi</th><th scope="col">Peserta</th><th scope="col">Level</th><th scope="col">XP</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<div class="leaderboard-legend"><span><i class="legend-dot top-one"></i>3 teratas</span><span><i class="legend-dot current-user"></i>Akun Anda</span></div></section></section>' +
+    activityCalendarMarkup(state, activityEvents, dayStreak) +
+    '<section class="badge-collection" aria-labelledby="badge-collection-title"><div class="badge-section-heading"><div><p class="eyebrow">KOLEKSI REWARD</p><h2 id="badge-collection-title">Badge pencapaian</h2><p class="muted">Buka reward dengan hasil belajar nyata. Progres terkunci menunjukkan jarak ke syarat berikutnya.</p></div><span class="badge-total">' + unlockedCount + '<small> / ' + badges.length + ' terbuka</small></span></div><div class="badge-grid">' + badgeCards + '</div></section>';
+  page.querySelectorAll('[data-game-nav]').forEach(button => button.addEventListener('click', () => {
+    view = button.dataset.gameNav === 'education' ? 'education' : 'simulation';
+    app();
+  }));
 }
 function profile(page) {
   const weaknesses = Object.entries(state.weak).filter(entry => entry[1] > 0).sort((a, b) => b[1] - a[1]);
@@ -877,7 +1032,8 @@ function ensureEducationState() {
       quizIndex: 0,
       quizScore: 0,
       quizAnswer: null,
-      quizComplete: false
+      quizComplete: false,
+      quizRunId: null
     };
   }
   return educationState;
@@ -1063,6 +1219,7 @@ function beginEducationQuiz() {
   state.quizAnswer = null;
   state.quizComplete = false;
   state.quizStarted = true;
+  state.quizRunId = currentAccount.id + '-quiz-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
   renderEducationQuiz();
 }
 
@@ -1385,10 +1542,9 @@ function simulation(page) {
     '<div class="demo-safety">Latihan lokal. Jangan pernah memasukkan data pribadi atau kata sandi sungguhan.</div></aside></div>';
 }
 function updateBadges() {
-  if (state.correct >= 3 && !state.badges.includes('hunter')) state.badges.push('hunter');
-  if (state.history.filter(item => item.ok && item.cat === 'Fake links').length >= 2 && !state.badges.includes('link')) state.badges.push('link');
-  if (state.history.filter(item => item.ok && item.cat === 'Impersonation').length >= 2 && !state.badges.includes('imp')) state.badges.push('imp');
-  if (state.maxStreak >= 3 && !state.badges.includes('streak')) state.badges.push('streak');
+  badgeDefinitions(state).filter(badge => badge.unlocked).forEach(badge => {
+    if (!state.badges.includes(badge.id)) state.badges.push(badge.id);
+  });
 }
 function answer(choice) {
   const session = state.session;
@@ -1417,6 +1573,7 @@ function answer(choice) {
     ok: correct,
     cat: scenario.category,
     date: now.toLocaleString('id-ID'),
+    at: now.toISOString(),
     difficulty: scenario.difficulty,
     scenarioId: scenario.id
   });
@@ -1670,7 +1827,15 @@ document.querySelector('#app').addEventListener('click', event => {
   if (action === 'quiz-next') {
     if (!state.quizStarted || state.quizComplete || state.quizAnswer === null) return;
     control.disabled = true;
-    if (state.quizIndex >= state.quizItems.length - 1) state.quizComplete = true;
+    if (state.quizIndex >= state.quizItems.length - 1) {
+      state.quizComplete = true;
+      const progress = currentAccount && currentAccount.progress;
+      if (progress && !Array.isArray(progress.learningEvents)) progress.learningEvents = [];
+      if (progress && state.quizRunId && !progress.learningEvents.some(item => item.id === state.quizRunId)) {
+        progress.learningEvents.push({ id: state.quizRunId, type: 'quiz', at: new Date().toISOString() });
+        save();
+      }
+    }
     else {
       state.quizIndex++;
       state.quizAnswer = null;
