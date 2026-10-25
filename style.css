@@ -112,10 +112,8 @@
 .target-platform-list label{min-width:112px;display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #27485e;border-radius:9px;background:#0b1c2b;color:#d9e8f1;font-size:13px;font-weight:700;cursor:pointer}
 .target-platform-list label:focus-within{outline:2px solid var(--cyan);outline-offset:2px}
 .target-platform-list input{width:17px;height:17px;margin:0;accent-color:var(--cyan)}
-.target-safety-note{margin-top:16px;padding:11px 13px;border:1px solid #21627a;border-radius:9px;background:#0d2b3b;color:#b9e9ed;font-size:12px;line-height:1.5}
 .target-authorization{margin:16px 0 5px!important}
 .target-authorization-error{margin-left:27px}
-.target-authorization-caveat{margin:7px 0 0 27px;color:#91a7ba;font-size:11px;line-height:1.45}
 .employee-targets{min-width:0;margin-top:22px;padding-top:18px;border-top:1px solid #20384d}
 .employee-targets-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .employee-targets-heading h3{margin:0;color:var(--ink);font-size:15px}

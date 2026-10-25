@@ -595,11 +595,10 @@ function targetConfigurationMarkup(company) {
     '</div><small class="field-error" id="target-platform-error" data-error-for="targetPlatforms" aria-live="polite"></small></fieldset>' +
     (company ? '<div class="employee-targets"><div class="employee-targets-heading"><div><h3>Daftar Kontak &amp; Divisi Karyawan</h3><p>Tambahkan kontak yang akan menjadi target. Bagian ini opsional jika Anda hanya memakai satu target di atas.</p></div><button class="ghost target-add-row" type="button" data-target-action="add-employee">+ Tambah Baris Karyawan</button></div>' +
       '<p class="field-hint employee-authorization-note">Jika daftar ini digunakan, pastikan otorisasi yang sah mencakup setiap kontak yang didaftarkan.</p><div class="target-contact-scroll" role="region" aria-label="Daftar kontak dan divisi karyawan" tabindex="0"><table class="target-contact-table"><thead><tr><th>Nama Karyawan</th><th>Email Kantor</th><th>Nomor WhatsApp</th><th>Divisi</th><th>Aksi</th></tr></thead><tbody data-employee-rows>' + employeeTargetRowMarkup() + '</tbody></table></div>' +
-      '<div class="target-safety-note" role="note">Registrasi hanya menyimpan konfigurasi target secara lokal. Tidak ada pesan yang dikirim dan simulasi belum dijalankan.</div></div>' :
-      '<div class="target-safety-note" role="note">Registrasi hanya menyimpan konfigurasi target secara lokal. Tidak ada pesan yang dikirim dan simulasi belum dijalankan.</div>') +
+      '</div>' : '') +
     '<label class="consent target-authorization"><input name="targetAuthorization" type="checkbox" value="yes" aria-describedby="target-authorization-error"> <span>' + authorization + '</span></label>' +
     '<small class="field-error target-authorization-error" id="target-authorization-error" data-error-for="targetAuthorization" aria-live="polite"></small>' +
-    '<p class="target-authorization-caveat">Pernyataan ini dicatat sebagai bagian dari prototype dan tidak memverifikasi persetujuan atau kewenangan secara hukum.</p></section>';
+    '</section>';
 }
 function authSwitchText() {
   return authMode === 'login'
@@ -611,7 +610,7 @@ function form(type) {
   const switchText = authSwitchText();
   if (type === 'login') {
     container.innerHTML =
-      '<form id="authForm" class="auth-form compact"><div class="notice">Gunakan ID pengguna atau email dan kata sandi yang dibuat saat registrasi. Akun demo lama tidak lagi tersedia.</div>' +
+      '<form id="authForm" class="auth-form compact">' +
       '<label class="field">ID pengguna atau alamat email<input name="identifier" autocomplete="username" required placeholder="contoh: namaanda"></label>' +
       '<label class="field">Kata sandi<input name="password" type="password" autocomplete="current-password" required placeholder="Kata sandi akun"></label>' +
       '<button class="primary auth-cta">Masuk ke dashboard</button><div class="feedback" id="formmsg" aria-live="polite">' + esc(accountMessage) + '</div>' +
@@ -1518,8 +1517,7 @@ function subscription(page) {
   const freeUsage = currentAccount.role === 'individual' && active === 'Free'
     ? '<p class="muted package-usage">Kuota bulan ini: <b>' + freeUsageLabel + '</b> · tersisa ' + freeQuotaRemaining() + ' · diperbarui ' + formatDate(nextPeriodDate(new Date())) + '</p>'
     : '';
-  page.innerHTML = '<div class="notice">Aktivasi paket adalah simulasi lokal untuk presentasi. Tidak ada pembayaran, penagihan, atau data kartu yang diproses.</div>' +
-    '<section class="card active-package"><div><span class="eyebrow">STATUS AKUN · ' + (currentAccount.role === 'company' ? 'PERUSAHAAN' : 'INDIVIDU') + '</span><h2>' + esc(activePlanLabel()) + '</h2><p class="muted">' + expiryStatus + (subscriptionData.status === 'expired' ? ' · Premium berakhir ' + formatDate(subscriptionData.previousExpiresAt) + '; progres tetap tersimpan.' : '') + '</p>' + freeUsage + '</div><span class="tag">' + (subscriptionData.status === 'active' ? 'Aktif' : 'Kembali ke Free') + '</span></section>' +
+  page.innerHTML = '<section class="card active-package"><div><span class="eyebrow">STATUS AKUN · ' + (currentAccount.role === 'company' ? 'PERUSAHAAN' : 'INDIVIDU') + '</span><h2>' + esc(activePlanLabel()) + '</h2><p class="muted">' + expiryStatus + (subscriptionData.status === 'expired' ? ' · Premium berakhir ' + formatDate(subscriptionData.previousExpiresAt) + '; progres tetap tersimpan.' : '') + '</p>' + freeUsage + '</div><span class="tag">' + (subscriptionData.status === 'active' ? 'Aktif' : 'Kembali ke Free') + '</span></section>' +
     '<div class="plan-grid package-grid">' + freeCard + premiumCard + companyCard + '</div>' +
     '<div id="planmsg" class="feedback" role="status" aria-live="polite">' + esc(planMessage) + '</div>';
   planMessage = '';
