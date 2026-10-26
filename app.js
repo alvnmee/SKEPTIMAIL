@@ -5,6 +5,8 @@ state = createProgress();
 migrateLegacyStorage();
 restoreSession();
 
+
+// Function: shell
 function shell() {
   const individual = role === 'individual';
   const navigation = individual
@@ -34,6 +36,9 @@ function shell() {
     app();
   }));
 }
+
+
+// Function: app
 function app() {
   if (!currentAccount || !role) {
     login();
@@ -55,6 +60,9 @@ function app() {
   const pages = { dashboard, simulation, game, profile, company, education, subscription };
   (pages[view] || pages.dashboard)(page);
 }
+
+
+// Function: beginCompanyRegistration
 function beginCompanyRegistration() {
   if (currentAccount) save();
   localStorage.removeItem(SESSION_KEY);

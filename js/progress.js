@@ -1,3 +1,4 @@
+// Function: createProgress
 function createProgress(input) {
   const source = input && typeof input === 'object' ? input : {};
   return {
@@ -20,16 +21,27 @@ function createProgress(input) {
   };
 }
 
+
+// Function: accuracy
 function accuracy() {
   return state.total ? Math.round(state.correct / state.total * 100) : 0;
 }
+
+
+// Function: score
 function score() {
   if (!state.total) return 0;
   return Math.min(100, Math.round((state.correct / state.total * 70) + state.xp / 12));
 }
+
+
+// Function: level
 function level(xp) {
   return Math.floor((Number(xp === undefined ? state.xp : xp) || 0) / 200) + 1;
 }
+
+
+// Function: levelProgress
 function levelProgress(xp) {
   const totalXp = Math.max(0, Number(xp === undefined ? state.xp : xp) || 0);
   const currentLevel = level(totalXp);
@@ -45,6 +57,9 @@ function levelProgress(xp) {
     percent: Math.min(100, Math.max(0, earnedInLevel / (nextLevelXp - levelStartXp) * 100))
   };
 }
+
+
+// Function: parseActivityTimestamp
 function parseActivityTimestamp(item) {
   if (!item || typeof item !== 'object') return null;
   if (item.at) {
@@ -60,9 +75,15 @@ function parseActivityTimestamp(item) {
   const timestamp = Date.parse(raw);
   return Number.isFinite(timestamp) ? new Date(timestamp) : null;
 }
+
+
+// Function: localDayKey
 function localDayKey(date) {
   return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
 }
+
+
+// Function: learningActivity
 function learningActivity(progress) {
   const source = progress || state;
   const events = [];
@@ -76,6 +97,9 @@ function learningActivity(progress) {
   });
   return events.filter(event => event.at.getTime() <= Date.now());
 }
+
+
+// Function: learningStreak
 function learningStreak(progress, activityEvents) {
   const events = activityEvents || learningActivity(progress);
   const days = [...new Set(events.map(event => localDayKey(event.at)))].sort();
@@ -102,6 +126,9 @@ function learningStreak(progress, activityEvents) {
   }
   return { current: current, record: record, activeDays: days.length };
 }
+
+
+// Function: badgeDefinitions
 function badgeDefinitions(progress) {
   const source = progress || state;
   const history = Array.isArray(source.history) ? source.history : [];

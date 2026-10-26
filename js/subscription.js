@@ -1,3 +1,4 @@
+// Function: getSubscription
 function getSubscription(account) {
   const owner = account || currentAccount;
   if (!owner) return normalizeSubscription(null, {});
@@ -8,10 +9,16 @@ function getSubscription(account) {
   }
   return owner.subscription;
 }
+
+
+// Function: activePlanLabel
 function activePlanLabel(account) {
   const subscription = getSubscription(account);
   return subscription.plan === 'Company' ? 'Company Plan' : subscription.plan;
 }
+
+
+// Function: hasAccess
 function hasAccess(feature, account) {
   const owner = account || currentAccount;
   if (!owner) return false;
@@ -27,16 +34,25 @@ function hasAccess(feature, account) {
   }
   return false;
 }
+
+
+// Function: freeQuotaRemaining
 function freeQuotaRemaining(account) {
   const owner = account || currentAccount;
   if (!owner) return 0;
   const subscription = getSubscription(owner);
   return subscription.plan === 'Free' ? Math.max(0, 3 - subscription.usage.count) : Infinity;
 }
+
+
+// Function: canStartSimulation
 function canStartSimulation(account) {
   const owner = account || currentAccount;
   return hasAccess('simulation', owner) && freeQuotaRemaining(owner) > 0;
 }
+
+
+// Function: packageStatusMarkup
 function packageStatusMarkup() {
   const subscription = getSubscription();
   if (subscription.plan === 'Free') {
@@ -58,6 +74,9 @@ function packageStatusMarkup() {
     (subscription.expiresAt ? ' · berakhir ' + formatDate(subscription.expiresAt) : ' · tanpa tanggal berakhir') + '</small></div><span class="tag">' + (subscription.plan === 'Premium' ? 'Unlimited simulasi' : 'Workspace perusahaan') +
     '</span><button class="ghost" data-open-plan>Kelola paket</button></div>';
 }
+
+
+// Function: subscription
 function subscription(page) {
   const subscriptionData = getSubscription();
   const active = subscriptionData.plan;
@@ -92,6 +111,9 @@ function subscription(page) {
     '<div id="planmsg" class="feedback" role="status" aria-live="polite">' + esc(planMessage) + '</div>';
   planMessage = '';
 }
+
+
+// Function: addOneMonth
 function addOneMonth(date) {
   const source = new Date(date);
   const month = source.getMonth();
@@ -100,6 +122,9 @@ function addOneMonth(date) {
   const lastDay = new Date(targetFirst.getFullYear(), targetFirst.getMonth() + 1, 0).getDate();
   return new Date(targetFirst.getFullYear(), targetFirst.getMonth(), Math.min(day, lastDay), source.getHours(), source.getMinutes(), source.getSeconds(), source.getMilliseconds());
 }
+
+
+// Function: showPlanConfirmation
 function showPlanConfirmation(plan) {
   if (document.querySelector('#plan-confirmation')) return;
   const isPremium = plan === 'Premium';
@@ -117,6 +142,9 @@ function showPlanConfirmation(plan) {
     '<div class="plan-confirm-actions"><button type="button" class="ghost" data-plan-action="cancel">Kembali</button><button type="button" class="primary" data-plan-action="confirm" data-confirm-plan="' + plan + '">Konfirmasi simulasi</button></div></section>';
   document.querySelector('#app').appendChild(overlay);
   const cancel = overlay.querySelector('[data-plan-action="cancel"]');
+
+
+  // Function: closeOnEscape
   const closeOnEscape = event => {
     if (event.key === 'Escape') {
       closePlanConfirmation();
@@ -128,12 +156,18 @@ function showPlanConfirmation(plan) {
   overlay.addEventListener('click', event => { if (event.target === overlay) closePlanConfirmation(); });
   if (cancel) cancel.focus();
 }
+
+
+// Function: closePlanConfirmation
 function closePlanConfirmation() {
   const overlay = document.querySelector('#plan-confirmation');
   if (!overlay) return;
   if (overlay._closeOnEscape) document.removeEventListener('keydown', overlay._closeOnEscape);
   overlay.remove();
 }
+
+
+// Function: activatePlan
 function activatePlan(plan) {
   if (!currentAccount || !['Free', 'Premium', 'Company'].includes(plan)) return;
   if (plan === 'Company' && currentAccount.role !== 'company') {
@@ -153,6 +187,9 @@ function activatePlan(plan) {
   }
   showPlanConfirmation(plan);
 }
+
+
+// Function: applyPlan
 function applyPlan(plan) {
   if (!currentAccount) return;
   if ((plan === 'Company' && currentAccount.role !== 'company') || (plan === 'Premium' && currentAccount.role !== 'individual')) return;

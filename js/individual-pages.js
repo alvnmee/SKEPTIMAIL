@@ -1,3 +1,4 @@
+// Function: activityCalendarMarkup
 function activityCalendarMarkup(progress, activityEvents, streakStats) {
   const events = activityEvents || learningActivity(progress);
   const counts = new Map();
@@ -34,6 +35,9 @@ function activityCalendarMarkup(progress, activityEvents, streakStats) {
     '<div><span class="streak-record" aria-hidden="true">↗</span><span><small>Rekor streak belajar</small><b>' + streak.record + ' hari</b></span></div></div>' +
     '<p class="calendar-footnote">Satu hari dihitung sekali, meski ada beberapa jawaban pada hari yang sama. Kuis tercatat saat selesai; kuis tidak menambah XP simulasi.</p></section>';
 }
+
+
+// Function: recommendation
 function recommendation() {
   if (!hasAccess('risk-report')) {
     return 'Materi edukasi umum tetap tersedia. Analisis kelemahan pribadi dan rekomendasi adaptif penuh termasuk dalam Premium.';
@@ -44,6 +48,9 @@ function recommendation() {
   }
   return 'Belum ada kelemahan berulang yang tercatat. Coba sesi campuran untuk membangun baseline keamanan Anda.';
 }
+
+
+// Function: dashboard
 function dashboard(page) {
   const events = state.scoreHistory.slice(-8);
   const trend = hasAccess('progress-tracking') && events.length
@@ -66,6 +73,9 @@ function dashboard(page) {
     '<section class="card recommend" style="margin-top:16px"><div class="section-title"><h2>Rekomendasi berikutnya</h2><button class="primary" id="go-sim">Mulai latihan</button></div><p class="muted">' + recommendation() + '</p></section>';
   document.querySelector('#go-sim').addEventListener('click', () => { view = 'simulation'; app(); });
 }
+
+
+// Function: game
 function game(page) {
   const now = Date.now();
   const cutoff = now - 7 * 24 * 60 * 60 * 1000;
@@ -136,6 +146,9 @@ function game(page) {
     app();
   }));
 }
+
+
+// Function: profile
 function profile(page) {
   const weaknesses = Object.entries(state.weak).filter(entry => entry[1] > 0).sort((a, b) => b[1] - a[1]);
   const weaknessMarkup = weaknesses.length

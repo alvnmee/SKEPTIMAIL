@@ -1,3 +1,4 @@
+// Function: login
 function login() {
   const isLogin = authMode === 'login';
   document.querySelector('#app').innerHTML =
@@ -16,6 +17,9 @@ function login() {
     login();
   }));
 }
+
+
+// Function: employeeTargetRowMarkup
 function employeeTargetRowMarkup(contact) {
   const row = contact || {};
   const rowId = ++employeeTargetRowId;
@@ -26,6 +30,9 @@ function employeeTargetRowMarkup(contact) {
     '<td data-label="Divisi"><input name="employeeDivision" data-employee-field="division" aria-label="Divisi" maxlength="100" value="' + esc(row.division || '') + '"></td>' +
     '<td data-label="Aksi"><button class="ghost target-remove-row" type="button" data-target-action="remove-employee">Hapus</button></td></tr>';
 }
+
+
+// Function: captureRegistrationDraft
 function captureRegistrationDraft(type) {
   const formElement = document.querySelector('#authForm');
   if (!formElement || formElement.dataset.mode !== 'register' || !['individual', 'company'].includes(type)) return;
@@ -46,6 +53,9 @@ function captureRegistrationDraft(type) {
   }));
   registrationDrafts[type] = { fields: fields, employees: employees };
 }
+
+
+// Function: restoreRegistrationDraft
 function restoreRegistrationDraft(formElement, type) {
   const draft = registrationDrafts[type];
   if (!draft) return;
@@ -64,6 +74,9 @@ function restoreRegistrationDraft(formElement, type) {
     formElement.querySelector('[data-employee-rows]').innerHTML = draft.employees.map(employeeTargetRowMarkup).join('');
   }
 }
+
+
+// Function: updateTargetRequirements
 function updateTargetRequirements(formElement) {
   if (!formElement) return;
   const platforms = [...formElement.querySelectorAll('[name="targetPlatforms"]:checked')].map(input => input.value);
@@ -78,6 +91,9 @@ function updateTargetRequirements(formElement) {
     phone.setAttribute('aria-required', String(phone.required));
   }
 }
+
+
+// Function: targetConfigurationMarkup
 function targetConfigurationMarkup(company) {
   const heading = company ? 'Konfigurasi Target Simulasi Perusahaan' : 'Konfigurasi Target Simulasi';
   const authorization = company
@@ -96,11 +112,17 @@ function targetConfigurationMarkup(company) {
     '<small class="field-error target-authorization-error" id="target-authorization-error" data-error-for="targetAuthorization" aria-live="polite"></small>' +
     '</section>';
 }
+
+
+// Function: authSwitchText
 function authSwitchText() {
   return authMode === 'login'
     ? 'Belum punya akun? <button type="button" class="auth-inline-link" id="auth-switch">Daftar akun</button>'
     : 'Sudah punya akun? <button type="button" class="auth-inline-link" id="auth-switch">Masuk</button>';
 }
+
+
+// Function: form
 function form(type) {
   const container = document.querySelector('#form');
   const switchText = authSwitchText();
@@ -176,26 +198,44 @@ function form(type) {
     submitAccountForm(event.currentTarget, type);
   });
 }
+
+
+// Function: showFormError
 function showFormError(message) {
   const messageElement = document.querySelector('#formmsg');
   if (messageElement) messageElement.textContent = message;
 }
+
+
+// Function: clearRegistrationErrors
 function clearRegistrationErrors(formElement) {
   formElement.querySelectorAll('[data-error-for]').forEach(error => { error.textContent = ''; });
   formElement.querySelectorAll('[aria-invalid="true"]').forEach(input => input.removeAttribute('aria-invalid'));
   formElement.querySelectorAll('[data-row-error]').forEach(error => { error.textContent = ''; });
 }
+
+
+// Function: setRegistrationFieldError
 function setRegistrationFieldError(formElement, name, message) {
   const error = formElement.querySelector('[data-error-for="' + name + '"]');
   if (error) error.textContent = message;
   formElement.querySelectorAll('[name="' + name + '"]').forEach(input => input.setAttribute('aria-invalid', 'true'));
 }
+
+
+// Function: validEmailAddress
 function validEmailAddress(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
+
+
+// Function: validInternationalPhone
 function validInternationalPhone(value) {
   return /^\+[1-9]\d{7,14}$/.test(String(value || '').replace(/[\s()-]/g, ''));
 }
+
+
+// Function: readRegistrationTargets
 function readRegistrationTargets(formElement, type) {
   const platforms = [...formElement.querySelectorAll('[name="targetPlatforms"]:checked')].map(input => input.value);
   const targets = {
@@ -218,9 +258,15 @@ function readRegistrationTargets(formElement, type) {
   }
   return result;
 }
+
+
+// Function: validateRegistrationForm
 function validateRegistrationForm(formElement, type, fields, targets) {
   clearRegistrationErrors(formElement);
   let valid = true;
+
+
+  // Function: fail
   const fail = (name, message) => { setRegistrationFieldError(formElement, name, message); valid = false; };
   if (type === 'company') {
     if (String(fields.companyName || '').trim().length < 2) fail('companyName', 'Masukkan nama organisasi minimal 2 karakter.');
@@ -259,6 +305,9 @@ function validateRegistrationForm(formElement, type, fields, targets) {
         division: row.querySelector('[data-employee-field="division"]').value.trim()
       };
       const used = Object.values(values).some(Boolean);
+
+
+      // Function: rowFail
       const rowFail = (key, message) => {
         const input = row.querySelector('[data-employee-field="' + key + '"]');
         const error = row.querySelector('[data-row-error="' + key + '"]');
@@ -277,6 +326,9 @@ function validateRegistrationForm(formElement, type, fields, targets) {
   }
   return valid;
 }
+
+
+// Function: submitAccountForm
 function submitAccountForm(formElement, type) {
   const fields = Object.fromEntries(new FormData(formElement));
   if (type === 'login') {
@@ -344,6 +396,9 @@ function submitAccountForm(formElement, type) {
   accountMessage = 'Akun berhasil dibuat dan disimpan di browser ini.';
   openAccount(account);
 }
+
+
+// Function: openAccount
 function openAccount(account) {
   currentAccount = account;
   currentAccount.progress = createProgress(account.progress);

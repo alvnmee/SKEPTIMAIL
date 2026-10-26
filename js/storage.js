@@ -5,6 +5,8 @@ const LEGACY_ROLE_KEY = 'pg-role';
 const knownDemoNames = ['nadia pratama', 'raka wijaya', 'tiara p.', 'bagas m.', 'mila ananta'];
 const knownDemoIds = ['nadia-pratama', 'raka-wijaya', 'tiara-p', 'bagas-m', 'mila-ananta'];
 
+
+// Function: parseStored
 function parseStored(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -14,11 +16,16 @@ function parseStored(key, fallback) {
   }
 }
 
+
+// Function: hasDemoEmail
 function hasDemoEmail(email) {
   const address = String(email || '').trim().toLowerCase();
   const domain = address.split('@')[1] || '';
   return address.includes('@demo.') || domain.endsWith('.demo') || domain === 'demo';
 }
+
+
+// Function: isDemoAccount
 function isDemoAccount(account) {
   const id = normalizeUsername(account.id || account.username || '');
   const email = String(account.email || '').toLowerCase();
@@ -33,6 +40,9 @@ function isDemoAccount(account) {
     knownDemoIds.includes(id) ||
     knownDemoNames.includes(displayName) || knownDemoNames.includes(companyName);
 }
+
+
+// Function: readAccounts
 function readAccounts() {
   const stored = parseStored(ACCOUNTS_KEY, []);
   const list = Array.isArray(stored) ? stored : (stored && Array.isArray(stored.accounts) ? stored.accounts : []);
@@ -47,9 +57,15 @@ function readAccounts() {
   }
   return clean;
 }
+
+
+// Function: persistAccounts
 function persistAccounts() {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
+
+
+// Function: legacyRecordIsDemo
 function legacyRecordIsDemo(record) {
   if (!record || typeof record !== 'object') return false;
   const explicitId = normalizeUsername(record.userId || record.username || record.accountId || record.id || '');
@@ -67,6 +83,9 @@ function legacyRecordIsDemo(record) {
   if (knownDemoNames.includes(name)) return true;
   return name === 'nadia' && Number(record.xp) === 420 && Number(record.total) === 10;
 }
+
+
+// Function: migrateLegacyStorage
 function migrateLegacyStorage() {
   const legacy = parseStored(LEGACY_STATE_KEY, null);
   const priorRole = localStorage.getItem(LEGACY_ROLE_KEY);
@@ -111,6 +130,8 @@ function migrateLegacyStorage() {
   persistAccounts();
 }
 
+
+// Function: restoreSession
 function restoreSession() {
   const activeId = localStorage.getItem(SESSION_KEY);
   currentAccount = accounts.find(account => account.id === activeId && !isDemoAccount(account)) || null;
@@ -126,6 +147,8 @@ function restoreSession() {
   if (role === 'company') view = 'company';
 }
 
+
+// Function: save
 function save() {
   if (!currentAccount) return;
   currentAccount.progress = createProgress(state);

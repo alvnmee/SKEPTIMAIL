@@ -1,5 +1,6 @@
 // Company workspace rendering and local management handlers.
 
+// Function: company
 function company(page) {
   if (!currentAccount || currentAccount.role !== 'company') {
     page.innerHTML = '<section class="card locked-feature"><h2>Dashboard organisasi khusus akun perusahaan</h2><p class="muted">Buat akun perusahaan melalui alur registrasi untuk mengelola workspace organisasi.</p><button class="primary" data-plan-action="company-registration">Buat akun perusahaan</button></section>';
@@ -59,6 +60,9 @@ function company(page) {
     '<section class="card company-table-card"><div class="section-title"><div><h2>Peserta & hasil latihan</h2><p class="muted">' + (employees.length ? 'Hasil per individu hanya tersimpan pada workspace organisasi ini.' : 'Belum ada data karyawan.') + '</p></div><button class="ghost" type="button" data-action="download-company-report" ' + (employees.length ? '' : 'disabled') + '>Unduh laporan CSV</button></div>' +
     '<div class="table-wrap"><table><thead><tr><th>Karyawan</th><th>Departemen</th><th>Akurasi latihan</th><th>Hasil terakhir</th><th>Aksi</th></tr></thead><tbody>' + employeeRows + '</tbody></table></div></section>';
 }
+
+
+// Function: companyWorkspace
 function companyWorkspace(account) {
   const owner = account || currentAccount;
   if (!owner || owner.role !== 'company') return { employees: [] };
@@ -79,6 +83,9 @@ function companyWorkspace(account) {
     }));
   return owner.company;
 }
+
+
+// Function: downloadCompanyReport
 function downloadCompanyReport() {
   if (!hasAccess('company-dashboard')) return;
   const employees = companyWorkspace().employees;
@@ -91,6 +98,9 @@ function downloadCompanyReport() {
     rows.push([employee.id, employee.name, employee.department, correct, total, total ? Math.round(correct / total * 100) + '%' : '',
       latest ? (latest.correct ? 'Tepat' : 'Perlu latihan') : 'Belum ada hasil', latest ? latest.category : '', latest ? formatDate(latest.at) : '']);
   });
+
+
+  // Function: csvCell
   const csvCell = value => '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"';
   const file = new Blob(['\ufeff' + rows.map(row => row.map(csvCell).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(file);
@@ -102,6 +112,9 @@ function downloadCompanyReport() {
   const message = document.querySelector('#companymsg');
   if (message) message.textContent = employees.length ? 'Laporan CSV untuk workspace ini berhasil disiapkan.' : 'Belum ada data karyawan untuk diekspor.';
 }
+
+
+// Function: submitCompanyForm
 function submitCompanyForm(formElement) {
   if (!hasAccess('company-manage') || formElement.dataset.submitting === 'true') return;
   formElement.dataset.submitting = 'true';
@@ -137,6 +150,9 @@ function submitCompanyForm(formElement) {
   save();
   company(document.querySelector('#page'));
 }
+
+
+// Function: handleCompanyAction
 function handleCompanyAction(control) {
   if (!currentAccount || currentAccount.role !== 'company') return;
   if (control.dataset.companyAction === 'open-dashboard') {

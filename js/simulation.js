@@ -1,11 +1,15 @@
 // Phishing simulation scenario rendering, session flow, scoring, and feedback.
 
+// Function: chooseSession
 function chooseSession() {
   const availableScenarios = hasAccess('advanced-scenarios')
     ? scenarioBank
     : scenarioBank.filter(item => item.difficulty !== 'Hard');
   if (availableScenarios.length < 5) throw new Error('Scenario bank cannot form a five-scenario session for this package.');
   const valid = [];
+
+
+  // Function: visit
   function visit(start, chosen) {
     if (chosen.length === 5) {
       const difficulties = new Set(chosen.map(item => item.difficulty));
@@ -19,6 +23,9 @@ function chooseSession() {
   }
   visit(0, []);
   if (!valid.length) throw new Error('Scenario bank cannot form a valid five-scenario session.');
+
+
+  // Function: priority
   const priority = set => hasAccess('risk-report')
     ? set.reduce((sum, scenario) => sum + Math.max(0, (state.weak[scenario.category] || 0) - (state.recognized[scenario.category] || 0) * 0.5), 0)
     : 0;
@@ -31,6 +38,9 @@ function chooseSession() {
   }
   return shuffled(preferred[Math.floor(Math.random() * preferred.length)]);
 }
+
+
+// Function: startSession
 function startSession() {
   if (startingSession || !canStartSimulation()) return false;
   startingSession = true;
@@ -67,6 +77,9 @@ function startSession() {
   startingSession = false;
   return true;
 }
+
+
+// Function: iconSvg
 function iconSvg(channel) {
   const paths = {
     WhatsApp: '<path d="M20.2 11.5a8.1 8.1 0 0 1-12 7.1L4 20l1.3-4A8.1 8.1 0 1 1 20.2 11.5Z"/><path d="M8.4 8.1c.3-.4.6-.4.9-.1l1 1.4c.2.3.1.6-.1.8l-.5.6c.5 1 1.3 1.8 2.4 2.3l.6-.7c.2-.2.5-.3.8-.1l1.4.7c.3.2.4.5.2.9-.4.8-1.1 1.2-2 1.2-2.5-.2-5.7-3.2-5.9-5.6-.1-.7.4-1.2 1.2-1.4Z"/>',
@@ -77,10 +90,16 @@ function iconSvg(channel) {
   };
   return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (paths[channel] || paths.Email) + '</svg>';
 }
+
+
+// Function: activeScenario
 function activeScenario() {
   if (!state.session) return null;
   return scenarioBank.find(item => item.id === state.session.ids[state.session.index]) || null;
 }
+
+
+// Function: scenarioAttachment
 function scenarioAttachment(scenario) {
   if (scenario.attachment && scenario.attachment.name) return scenario.attachment;
   const label = scenario.link ? String(scenario.link.label || '') : '';
@@ -89,6 +108,9 @@ function scenarioAttachment(scenario) {
   const extension = match[1].split('.').pop().toUpperCase();
   return { name: match[1], type: extension, size: scenario.attachmentSize || '' };
 }
+
+
+// Function: messageParagraphs
 function messageParagraphs(scenario, linkClass) {
   const label = scenario.link && scenario.link.label ? safeText(scenario.link.label) : '';
   return String(scenario.message || '').split(/\n\s*\n/).map(paragraph => {
@@ -97,6 +119,9 @@ function messageParagraphs(scenario, linkClass) {
     return '<p>' + content + '</p>';
   }).join('');
 }
+
+
+// Function: simulatedLinkCard
 function simulatedLinkCard(scenario, variant) {
   if (!scenario.link) return '';
   let host = '';
@@ -104,6 +129,9 @@ function simulatedLinkCard(scenario, variant) {
   return '<button type="button" class="simulated-link-card ' + variant + '" data-sim-action="analyze-link" aria-controls="link-inspector" aria-expanded="false" aria-label="Analisis tautan simulasi: ' + safeText(scenario.link.label) + '"><span class="sim-link-mark" aria-hidden="true">↗</span>' +
     '<span class="simulated-link-copy"><b>' + safeText(scenario.link.label) + '</b><small>' + safeText(host) + '</small><small class="sim-link-action">Periksa tujuan</small></span></button>';
 }
+
+
+// Function: scenarioAddress
 function scenarioAddress(scenario) {
   try {
     const url = new URL(scenario.link.url);
@@ -112,6 +140,9 @@ function scenarioAddress(scenario) {
     return scenario.sender.domain || scenario.sender.address || '';
   }
 }
+
+
+// Function: simulatedAttachmentCard
 function simulatedAttachmentCard(scenario, variant) {
   const file = scenarioAttachment(scenario);
   if (!file) return '';
@@ -121,6 +152,9 @@ function simulatedAttachmentCard(scenario, variant) {
   return '<div class="simulated-attachment ' + variant + '" role="group" aria-label="Lampiran simulasi ' + safeText(file.name) + '"><span class="attachment-type' + (typeClass ? ' attachment-' + typeClass : '') + '" aria-hidden="true">' + safeText(type) +
     '</span><span class="attachment-copy"><b>' + safeText(file.name) + '</b><small>' + safeText(type) + ' · lampiran simulasi' + size + '</small></span><span class="attachment-preview">Pratinjau</span></div>';
 }
+
+
+// Function: renderWhatsAppMessage
 function renderWhatsAppMessage(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -133,6 +167,9 @@ function renderWhatsAppMessage(scenario) {
     '<div class="chat-message-copy">' + messageParagraphs(scenario, 'message-inline-link') + '</div>' + attachment + link + '<div class="bubble-meta"><time>' + safeText(scenario.time) + '</time><span class="message-checks" aria-hidden="true">✓✓</span></div></div></section>' +
     '</div>';
 }
+
+
+// Function: renderSmsMessage
 function renderSmsMessage(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -143,6 +180,9 @@ function renderSmsMessage(scenario) {
     messageParagraphs(scenario, 'message-inline-link') + (!hasInlineLink ? simulatedLinkCard(scenario, 'sms-link') : '') + simulatedAttachmentCard(scenario, 'sms-attachment') + '</div></section>' +
     '</div>';
 }
+
+
+// Function: renderEmailMessage
 function renderEmailMessage(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -153,6 +193,9 @@ function renderEmailMessage(scenario) {
     safeText(sender.name) + '</b><small>' + safeText(sender.address) + '</small></span><time>' + safeText(scenario.time) + '</time></div><p class="email-to-line">kepada saya <span aria-hidden="true">⌄</span></p><div class="email-body-copy">' +
     messageParagraphs(scenario, 'message-inline-link') + link + simulatedAttachmentCard(scenario, 'email-attachment') + '</div></article></div>';
 }
+
+
+// Function: renderAccountNotification
 function renderAccountNotification(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -165,10 +208,16 @@ function renderAccountNotification(scenario) {
     '<div class="notification-service"><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) + '</span><span><small>LAYANAN</small><b>' +
     safeText(sender.domain || sender.address) + '</b></span><span class="notification-status">Simulasi</span></div></div></article></div>';
 }
+
+
+// Function: websiteLoginPreview
 function websiteLoginPreview() {
   return '<div class="website-login-preview" role="group" aria-label="Formulir login simulasi nonaktif"><span class="website-form-kicker">MASUK KE PORTAL</span><label>Email pengguna<input type="email" disabled autocomplete="off" placeholder="nama@organisasi.example"></label>' +
     '<label>Kata sandi<input type="password" disabled autocomplete="off" placeholder="Tidak menerima kata sandi"></label><button type="button" disabled>Masuk · nonaktif</button><small>Pratinjau visual saja. Kolom ini tidak menerima atau menyimpan data.</small></div>';
 }
+
+
+// Function: renderWebsitePreview
 function renderWebsitePreview(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -179,6 +228,9 @@ function renderWebsitePreview(scenario) {
     safeText(scenario.subject) + '</span><h3>' + safeText(scenario.title) + '</h3><div class="website-message-copy">' + messageParagraphs(scenario, 'message-inline-link') + '</div>' +
     (loginContext ? websiteLoginPreview() : '') + '<div class="website-preview-status"><span class="preview-status-dot"></span><span><b>Lingkungan simulasi edukasi</b><small>Alamat hanya ditampilkan sebagai teks. Halaman tidak terhubung ke layanan atau mengirim data.</small></span></div></main></section></div>';
 }
+
+
+// Function: renderLegacyMessage
 function renderLegacyMessage(scenario) {
   const sender = scenario.sender;
   const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
@@ -189,6 +241,9 @@ function renderLegacyMessage(scenario) {
     (scenario.link ? '<p class="sim-link-label">Teks tautan dalam pesan: <span>' + safeText(scenario.link.label) + '</span></p>' : '') + '</div>' +
     '<footer class="sim-message-footer"><span>' + iconSvg(scenario.channel) + ' ' + safeText(scenario.channel) + '</span></footer>';
 }
+
+
+// Function: renderScenarioMessage
 function renderScenarioMessage(scenario) {
   if (scenario.channel === 'WhatsApp') return renderWhatsAppMessage(scenario);
   if (scenario.channel === 'SMS') return renderSmsMessage(scenario);
@@ -197,6 +252,9 @@ function renderScenarioMessage(scenario) {
   if (scenario.channel === 'Website') return renderWebsitePreview(scenario);
   return renderLegacyMessage(scenario);
 }
+
+
+// Function: inspectPanel
 function inspectPanel(scenario) {
   const sender = scenario.sender;
   return '<div class="sim-inspector" id="sender-inspector" hidden><div><span>Dari / pengirim</span><b>' + safeText(sender.address) +
@@ -204,6 +262,9 @@ function inspectPanel(scenario) {
     (sender.replyTo ? '<div><span>Reply-To</span><b>' + safeText(sender.replyTo) + '</b></div>' : '') +
     '<div><span>Konteks</span><b>' + safeText(scenario.context) + '</b></div></div>';
 }
+
+
+// Function: linkPanel
 function linkPanel(scenario) {
   if (!scenario.link) {
     return '<div class="sim-inspector" id="link-inspector" hidden><p>Pesan ini tidak menyertakan tautan. Periksa pengirim dan konteks.</p></div>';
@@ -215,6 +276,9 @@ function linkPanel(scenario) {
     '</b></div><div><span>Domain yang diharapkan</span><b>' + safeText(scenario.link.expectedDomain) +
     '</b></div><small>Alamat ditampilkan sebagai teks lokal. Tidak ada tautan yang dibuka.</small></div>';
 }
+
+
+// Function: sessionIntro
 function sessionIntro(page) {
   if (!hasAccess('simulation')) {
     page.innerHTML = '<section class="card locked-feature"><h2>Simulasi individu tidak tersedia pada akun perusahaan</h2><p class="muted">Gunakan dashboard organisasi untuk mencatat latihan karyawan pada workspace yang terpisah.</p><button class="primary" data-v="company">Buka dashboard perusahaan</button></section>';
@@ -233,6 +297,9 @@ function sessionIntro(page) {
     '<div class="session-facts"><span>5 skenario acak</span><span>' + (hasAccess('advanced-scenarios') ? 'Easy · Medium · Hard' : 'Easy · Medium · Hard tersedia di Premium') + '</span><span>Tautan tidak membuka situs</span></div>' + quotaNote +
     (limitReached ? '<button class="primary" type="button" data-open-plan>Kuota habis · lihat paket</button>' : '<button class="primary" type="button" data-sim-action="start">Mulai sesi simulasi</button>') + '</section>';
 }
+
+
+// Function: sessionSummary
 function sessionSummary(page) {
   const session = state.session;
   const results = session.answers.filter(Boolean);
@@ -252,6 +319,9 @@ function sessionSummary(page) {
     }).join('') + '</div>' + restartAction +
     '<button class="ghost session-dashboard" data-sim-action="dashboard">Kembali ke dashboard</button></section>';
 }
+
+
+// Function: simulation
 function simulation(page) {
   const session = state.session;
   if (!session) { sessionIntro(page); return; }
@@ -286,11 +356,17 @@ function simulation(page) {
     '<p class="muted">Cocokkan identitas, domain, konteks, serta tindakan yang diminta. Beberapa contoh aman juga dapat memiliki tenggat waktu yang wajar.</p>' +
     '<div class="demo-safety">Latihan lokal. Jangan pernah memasukkan data pribadi atau kata sandi sungguhan.</div></aside></div>';
 }
+
+
+// Function: updateBadges
 function updateBadges() {
   badgeDefinitions(state).filter(badge => badge.unlocked).forEach(badge => {
     if (!state.badges.includes(badge.id)) state.badges.push(badge.id);
   });
 }
+
+
+// Function: answer
 function answer(choice) {
   const session = state.session;
   if (!hasAccess('simulation') || !session || session.complete || session.answers[session.index]) return;
@@ -328,6 +404,9 @@ function answer(choice) {
   save();
   simulation(document.querySelector('#page'));
 }
+
+
+// Function: toggleInspector
 function toggleInspector(id, button) {
   const panel = document.querySelector('#' + id);
   if (!panel) return;

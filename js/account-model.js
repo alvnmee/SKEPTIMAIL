@@ -1,3 +1,4 @@
+// Function: normalizeSimulationTargets
 function normalizeSimulationTargets(value, accountRole) {
   if (!value || typeof value !== 'object') return null;
   const platforms = Array.isArray(value.platforms)
@@ -30,6 +31,9 @@ function normalizeSimulationTargets(value, accountRole) {
     authorized: Boolean(value.authorized)
   };
 }
+
+
+// Function: normalizedAccount
 function normalizedAccount(account) {
   if (!account || typeof account !== 'object') return null;
   const id = normalizeUsername(account.id || account.username);
@@ -52,14 +56,23 @@ function normalizedAccount(account) {
   normalized.subscription = normalizeSubscription(account.subscription, normalized);
   return normalized;
 }
+
+
+// Function: currentPeriodKey
 function currentPeriodKey(date) {
   const value = date || new Date();
   return value.getFullYear() + '-' + String(value.getMonth() + 1).padStart(2, '0');
 }
+
+
+// Function: nextPeriodDate
 function nextPeriodDate(date) {
   const value = new Date(date || new Date());
   return new Date(value.getFullYear(), value.getMonth() + 1, 1);
 }
+
+
+// Function: normalizeSubscription
 function normalizeSubscription(source, account) {
   const owner = account || {};
   const ownerRole = owner.role === 'company' ? 'company' : 'individual';

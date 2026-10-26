@@ -157,6 +157,9 @@ const educationQuizBank = [
 ];
 
 let educationState = null;
+
+
+// Function: ensureEducationState
 function ensureEducationState() {
   if (!educationState || educationState.accountId !== (currentAccount && currentAccount.id)) {
     educationState = {
@@ -175,6 +178,8 @@ function ensureEducationState() {
   return educationState;
 }
 
+
+// Function: educationLessonDetail
 function educationLessonDetail(topic) {
   if (!topic) return '';
   return `<section class="edu-detail" id="edu-detail" aria-labelledby="edu-detail-title">
@@ -191,11 +196,18 @@ function educationLessonDetail(topic) {
   </section>`;
 }
 
+
+// Function: educationLessonButton
 function educationLessonButton(topic) {
   return `<button type="button" class="edu-learn-link" data-edu-action="open-lesson" data-lesson="${topic.id}" aria-label="Pelajari lebih lanjut tentang ${esc(topic.title)}">Pelajari lebih lanjut <span aria-hidden="true">↗</span></button>`;
 }
 
+
+// Function: educationLessonLibrary
 function educationLessonLibrary() {
+
+
+  // Function: topic
   const topic = id => educationTopics.find(item => item.id === id);
   const featured = topic('impersonation');
   const fakeLinks = topic('fake-links');
@@ -228,6 +240,8 @@ function educationLessonLibrary() {
   </div>`;
 }
 
+
+// Function: educationQuizMarkup
 function educationQuizMarkup() {
   const state = ensureEducationState();
   if (state.quizComplete) {
@@ -267,11 +281,15 @@ function educationQuizMarkup() {
       <aside class="edu-quiz-decision"><p class="edu-topic-kicker">Analisis Anda</p><p class="muted">Jangan terburu-buru. Cocokkan identitas, tujuan, dan konteks pesan.</p>${options}${feedback}</aside></div>`;
 }
 
+
+// Function: renderEducationQuiz
 function renderEducationQuiz() {
   const target = document.querySelector('#edu-quiz-content');
   if (target) target.innerHTML = educationQuizMarkup();
 }
 
+
+// Function: education
 function education(page) {
   const state = ensureEducationState();
   const categoryCounts = educationQuizBank.reduce((counts, question) => {
@@ -344,6 +362,8 @@ function education(page) {
   </div>`;
 }
 
+
+// Function: beginEducationQuiz
 function beginEducationQuiz() {
   const state = ensureEducationState();
   const phishing = shuffled(educationQuizBank.filter(question => question.answer === 'phish')).slice(0, 2);
@@ -359,6 +379,8 @@ function beginEducationQuiz() {
   renderEducationQuiz();
 }
 
+
+// Function: syncEducationChecklist
 function syncEducationChecklist() {
   const state = ensureEducationState();
   const inputs = [...document.querySelectorAll('[data-edu-check]')];
@@ -378,6 +400,9 @@ document.querySelector('#app').addEventListener('click', event => {
   if (!control) return;
   const action = control.dataset.eduAction;
   const state = ensureEducationState();
+
+
+  // Function: scrollTo
   const scrollTo = (selector, focusSelector) => {
     const target = document.querySelector(selector);
     if (!target) return;
