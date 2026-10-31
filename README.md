@@ -1,6 +1,6 @@
 # PhishGuard prototype
 
-Prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang aman. Semua konten adalah fiktif, tidak ada autentikasi backend, pembayaran, pengiriman pesan, atau pengumpulan kredensial sungguhan.
+Prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang aman. 
 
 ## Menjalankan
 
