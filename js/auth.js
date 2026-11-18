@@ -2,7 +2,7 @@
 function login() {
   const isLogin = authMode === 'login';
   document.querySelector('#app').innerHTML =
-    '<main class="auth auth-light"><div class="auth-top"><div class="auth-logo"><span>◇</span><div><b>PhishGuard</b><small>CYBER DEFENSE EDUCATION</small></div></div></div>' +
+    '<main class="auth auth-light"><div class="auth-top"><div class="auth-logo"><img class="auth-logo-image" src="assets/phishguard-logo-dark.svg" alt="PhishGuard"></div></div>' +
     '<section class="auth-card auth-wide"><div class="auth-heading"><p class="eyebrow">' + (isLogin ? 'AKSES PLATFORM' : 'MULAI BELAJAR DENGAN AMAN') + '</p>' +
     '<h1>' + (isLogin ? 'Masuk ke PhishGuard' : 'Daftar Akun PhishGuard') + '</h1><p>' +
     (isLogin ? 'Masuk menggunakan ID pengguna atau email yang Anda daftarkan.' : 'Buat akun lokal untuk menyimpan progres latihan pada browser ini.') +

@@ -1,6 +1,6 @@
 const educationTopics = [
   {
-    id: 'impersonation', title: 'Impersonation', visual: 'identity',
+    id: 'impersonation', title: 'Impersonation', visual: 'identity', image: 'assets/education/impersonation.png',
     summary: 'Penipu membangun kesan sebagai rekan, vendor, HR, atau layanan yang Anda kenal.',
     example: 'Pesan dari “staf vendor Sagara” meminta perubahan rekening tagihan melalui alamat balasan baru.',
     mechanism: 'Pelaku meniru nama, gaya bahasa, foto profil, atau konteks percakapan agar permintaan terasa rutin. Identitas yang tampak akrab belum tentu berasal dari pemiliknya.',
@@ -10,7 +10,7 @@ const educationTopics = [
     response: 'Jangan teruskan pembayaran atau dokumen. Konfirmasikan perubahan lewat kanal kedua yang telah dikenal dan laporkan akun tiruan.'
   },
   {
-    id: 'fake-links', title: 'Fake links', visual: 'link',
+    id: 'fake-links', title: 'Fake links', visual: 'link', image: 'assets/education/fake-links.png',
     summary: 'Alamat yang ditampilkan dapat berbeda dari tujuan sebenarnya atau memakai domain tiruan.',
     example: 'Pesan menyebut “Portal Mitra Sagara”, tetapi alamat yang tercetak adalah `https://mitra-sagara-update.example`.',
     mechanism: 'Tautan tiruan meniru kata atau susunan domain yang familier. Nama merek di jalur URL tidak membuktikan bahwa domain induknya resmi.',
@@ -20,7 +20,7 @@ const educationTopics = [
     response: 'Jangan buka tautan. Bila sudah dibuka, jangan isi data apa pun dan tutup halaman; gunakan perangkat atau kanal resmi untuk memeriksa akun.'
   },
   {
-    id: 'urgency', title: 'Urgency tactics', visual: 'clock',
+    id: 'urgency', title: 'Urgency tactics', visual: 'clock', image: 'assets/education/urgency-tactics.png',
     summary: 'Tekanan waktu atau ancaman kehilangan akses membuat orang melewati pemeriksaan rutin.',
     example: 'Pesan fiktif “Pusat Akun Sagara” meminta tindakan sebelum pukul 17.00, tetapi tidak menjelaskan alasan atau jalur bantuan resmi.',
     mechanism: 'Batas waktu, ancaman pemblokiran, hadiah yang akan berakhir, atau permintaan rahasia dipakai untuk mempercepat keputusan. Tenggat yang masuk akal juga bisa muncul pada pesan sah, jadi periksa konteksnya.',
@@ -30,7 +30,7 @@ const educationTopics = [
     response: 'Berhenti sejenak. Hubungi bagian terkait melalui direktori resmi dan simpan pesan sebagai bukti bila perlu dilaporkan.'
   },
   {
-    id: 'credentials', title: 'Credential requests', visual: 'key',
+    id: 'credentials', title: 'Credential requests', visual: 'key', image: 'assets/education/credential-requests.png',
     summary: 'Permintaan kata sandi, PIN, OTP, atau persetujuan MFA berisiko mengambil alih akun.',
     example: 'Akun bantuan fiktif di WhatsApp meminta kode verifikasi enam angka agar “tiket dapat ditutup”.',
     mechanism: 'Pelaku meminta rahasia secara langsung atau mengarahkan korban ke formulir tiruan. Kode sekali pakai dapat memberi akses walau kata sandi tidak diketahui.',
@@ -40,7 +40,7 @@ const educationTopics = [
     response: 'Tolak permintaan, batalkan notifikasi masuk yang tidak Anda mulai, ganti kata sandi dari situs resmi, lalu beri tahu dukungan tepercaya.'
   },
   {
-    id: 'qr-phishing', title: 'QR phishing', visual: 'qr',
+    id: 'qr-phishing', title: 'QR phishing', visual: 'qr', image: 'assets/education/qr-phishing.png',
     summary: 'Kode QR dapat menyamarkan alamat tujuan, terutama pada poster atau lampiran yang tidak diminta.',
     example: 'Stiker fiktif “pembaruan parkir” menutupi QR resmi dan mengarah ke `parkir-akses.example`.',
     mechanism: 'QR hanya cara lain untuk membuka URL. Setelah dipindai, halaman tetap perlu diperiksa sebelum informasi dimasukkan.',
@@ -50,7 +50,7 @@ const educationTopics = [
     response: 'Tutup halaman dan jangan lanjutkan. Laporkan kode yang mencurigakan kepada pengelola lokasi melalui kontak resmi.'
   },
   {
-    id: 'attachments', title: 'Malicious attachments', visual: 'file',
+    id: 'attachments', title: 'Malicious attachments', visual: 'file', image: 'assets/education/malicious-attachments.png',
     summary: 'Lampiran yang tidak diharapkan dapat menyamarkan file berbahaya sebagai dokumen biasa.',
     example: 'Email tagihan fiktif melampirkan `Rincian_Biaya.html` padahal percakapan sebelumnya tidak menyebut dokumen.',
     mechanism: 'Nama file dan ikon dokumen tidak menunjukkan isi sebenarnya. Pelaku sering memakai arsip, formulir, atau dokumen yang meminta tindakan tambahan.',
@@ -60,7 +60,7 @@ const educationTopics = [
     response: 'Jangan buka atau teruskan file. Laporkan email. Jika telanjur dibuka, putuskan koneksi bila ada perilaku aneh dan minta bantuan tim IT.'
   },
   {
-    id: 'account-takeover', title: 'Account takeover', visual: 'account',
+    id: 'account-takeover', title: 'Account takeover', visual: 'account', image: 'assets/education/account-takeover.png',
     summary: 'Akun dapat diambil alih setelah kata sandi atau faktor pemulihan berhasil dicuri.',
     example: 'Pemberitahuan fiktif dari aplikasi “RuangSaku” menyebut ada perangkat baru dan menyarankan pengguna membuka aplikasi sendiri.',
     mechanism: 'Kredensial yang bocor dipakai untuk masuk, mengganti detail pemulihan, atau menyamar sebagai pemilik akun. Peringatan login bisa sah, tetapi tautan dalam pesan tetap perlu diperiksa.',
@@ -70,7 +70,7 @@ const educationTopics = [
     response: 'Gunakan perangkat tepercaya untuk mengamankan akun, akhiri sesi asing, perbarui faktor pemulihan, dan hubungi dukungan resmi.'
   },
   {
-    id: 'social-engineering', title: 'Social engineering', visual: 'people',
+    id: 'social-engineering', title: 'Social engineering', visual: 'people', image: 'assets/education/social-engineering.png',
     summary: 'Manipulasi percakapan memancing informasi sedikit demi sedikit tanpa terlihat seperti serangan teknis.',
     example: 'Penelepon fiktif mengaku mengatur jadwal wawancara dan meminta foto kartu identitas untuk “mencocokkan data”.',
     mechanism: 'Pelaku memanfaatkan rasa sungkan, kepercayaan, atau keinginan membantu. Informasi kecil dapat digabungkan untuk menebak jawaban pemulihan atau menyusun penipuan berikutnya.',
@@ -216,25 +216,25 @@ function educationLessonLibrary() {
   const additional = educationTopics.filter(item => !['impersonation', 'fake-links', 'urgency', 'credentials'].includes(item.id));
   return `<div class="edu-library-featured">
     <article class="edu-feature lesson-visual-${featured.visual}">
-      <div class="edu-topic-art" data-edu-visual="${featured.visual}" aria-hidden="true"><span></span><i></i><b></b></div>
+      <div class="edu-topic-art has-illustration" data-edu-visual="${featured.visual}" aria-hidden="true"><img src="${featured.image}" alt="" loading="lazy" decoding="async"></div>
       <div class="edu-feature-copy"><span class="edu-topic-kicker">Pola identitas</span><h3>${featured.title}</h3><p>${featured.summary}</p>
         <p class="edu-practice"><b>Yang perlu dicermati</b><br>Nama yang akrab belum membuktikan siapa pengirim sebenarnya.</p>${educationLessonButton(featured)}</div>
     </article>
     <div class="edu-lesson-rail">
       ${[fakeLinks, urgency].map(item => `<article class="edu-mini-lesson lesson-visual-${item.visual}">
-        <div class="edu-topic-art" data-edu-visual="${item.visual}" aria-hidden="true"><span></span><i></i><b></b></div>
+        <div class="edu-topic-art has-illustration" data-edu-visual="${item.visual}" aria-hidden="true"><img src="${item.image}" alt="" loading="lazy" decoding="async"></div>
         <div><span class="edu-topic-kicker">${item.title === 'Fake links' ? 'Tujuan tautan' : 'Tekanan keputusan'}</span><h3>${item.title}</h3><p>${item.summary}</p>${educationLessonButton(item)}</div>
       </article>`).join('')}
     </div>
   </div>
   <article class="edu-credential lesson-visual-${credentials.visual}">
-    <div class="edu-topic-art" data-edu-visual="${credentials.visual}" aria-hidden="true"><span></span><i></i><b></b></div>
+    <div class="edu-topic-art has-illustration" data-edu-visual="${credentials.visual}" aria-hidden="true"><img src="${credentials.image}" alt="" loading="lazy" decoding="async"></div>
     <div><span class="edu-topic-kicker">Rahasia akun</span><h3>${credentials.title}</h3><p>${credentials.summary}</p>
       <p class="edu-practice"><b>Ingat:</b> OTP dan kode pemulihan tidak dibagikan kepada siapa pun.</p></div>${educationLessonButton(credentials)}
   </article>
   <div class="edu-more-lessons"><div class="edu-subhead"><h3>Jelajahi pola lainnya</h3><p>Variasi kanal dan cara manipulasi yang juga patut dikenali.</p></div>
     <div class="edu-topic-list">${additional.map(item => `<article class="edu-topic-row lesson-visual-${item.visual}">
-      <div class="edu-topic-art" data-edu-visual="${item.visual}" aria-hidden="true"><span></span><i></i><b></b></div>
+      <div class="edu-topic-art has-illustration" data-edu-visual="${item.visual}" aria-hidden="true"><img src="${item.image}" alt="" loading="lazy" decoding="async"></div>
       <div><h4>${item.title}</h4><p>${item.summary}</p>${educationLessonButton(item)}</div>
     </article>`).join('')}</div>
   </div>`;

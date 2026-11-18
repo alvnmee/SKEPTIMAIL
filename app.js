@@ -13,7 +13,7 @@ function shell() {
     ? [['dashboard', 'Dashboard'], ['simulation', 'Simulasi'], ['game', 'Pencapaian'], ['profile', 'Profil & Laporan'], ['education', 'Edukasi'], ['subscription', 'Paket']]
     : [['company', 'Company Dashboard'], ['education', 'Edukasi'], ['subscription', 'Paket']];
   document.querySelector('#app').innerHTML =
-    '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand brand">◈ Phish<b>Guard</b></div><nav class="nav">' +
+    '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand"><img class="side-brand-logo" src="assets/phishguard-logo-dark.svg" alt="PhishGuard"></div><nav class="nav">' +
     navigation.map(item => '<button data-v="' + item[0] + '" class="' + (item[0] === view ? 'active' : '') + '">' + item[1] + '</button>').join('') +
     '<button data-v="logout">Keluar</button></nav><div class="side-foot">Akun dan progres tersimpan lokal pada perangkat ini.</div></aside>' +
     '<main class="main"><div class="topbar"><div><p class="eyebrow">' + (individual ? 'personal learning space' : 'organization workspace') + '</p><h1 id="title"></h1></div>' +
