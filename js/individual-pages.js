@@ -32,8 +32,7 @@ function activityCalendarMarkup(progress, activityEvents, streakStats) {
     '<div class="calendar-weekdays" aria-hidden="true">' + weekdays.map(day => '<span>' + esc(day) + '</span>').join('') + '</div>' +
     '<div class="activity-calendar-grid">' + cells + '</div>' + emptyMessage +
     '<div class="streak-summary"><div><span class="streak-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3c1 3-1 4.5-1 6.5 0 1.2.8 2 1.8 2 1.6 0 2.2-1.8 2-3.2 2.2 1.8 3.7 4.1 3.7 6.6a6.5 6.5 0 0 1-13 0c0-3.6 2.4-6.8 6.5-11.9Z"/></svg></span><span><small>Streak belajar aktif</small><b>' + streak.current + ' hari</b></span></div>' +
-    '<div><span class="streak-record" aria-hidden="true">↗</span><span><small>Rekor streak belajar</small><b>' + streak.record + ' hari</b></span></div></div>' +
-    '<p class="calendar-footnote">Satu hari dihitung sekali, meski ada beberapa jawaban pada hari yang sama. Kuis tercatat saat selesai; kuis tidak menambah XP simulasi.</p></section>';
+    '<div><span class="streak-record" aria-hidden="true">↗</span><span><small>Rekor streak belajar</small><b>' + streak.record + ' hari</b></span></div></div></section>';
 }
 
 
