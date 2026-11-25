@@ -51,7 +51,7 @@ function company(page) {
     '<div class="card stat"><small>VULNERABILITY RATE</small><div class="value">' + (vulnerability === null ? '—' : vulnerability + '%') + '</div><span class="muted">jawaban latihan yang belum tepat</span></div>' +
     '<div class="card stat"><small>HASIL LATIHAN</small><div class="value">' + results.length + '</div><span class="muted">catatan evaluasi lokal</span></div>' +
     '<div class="card stat"><small>PELATIHAN DIMULAI</small><div class="value">' + (employees.length ? completedEmployees + '/' + employees.length : '—') + '</div><span class="muted">anggota dengan hasil</span></div></div>' +
-    '<div class="company-toolbar"><div><h2>Ringkasan organisasi</h2><p class="muted">Data demo bersifat lokal dan tidak mewakili pengiriman simulasi sungguhan.</p></div><button class="primary" type="button" data-company-action="toggle-add">Tambah karyawan</button></div>' + formMarkup +
+    '<div class="company-toolbar"><div><h2>Ringkasan organisasi</h2></div><button class="primary" type="button" data-company-action="toggle-add">Tambah karyawan</button></div>' + formMarkup +
     '<p id="companymsg" class="feedback" aria-live="polite">' + esc(companyMessage) + '</p>' +
     '<div class="grid two company-reports"><section class="card"><div class="section-title"><h2>Kerentanan per departemen</h2><span class="tag">hasil tersimpan</span></div>' +
     '<div class="table-wrap"><table><thead><tr><th>Departemen</th><th>Jawaban</th><th>Belum tepat</th></tr></thead><tbody>' + departmentRows + '</tbody></table></div><p class="muted">' + (results.length ? 'Tingkat kerentanan = jawaban yang belum tepat ÷ seluruh hasil latihan.' : 'Belum ada hasil simulasi; statistik departemen akan muncul setelah hasil dicatat.') + '</p></section>' +

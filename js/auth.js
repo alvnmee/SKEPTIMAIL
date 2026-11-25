@@ -9,7 +9,7 @@ function login() {
     '</p></div>' + (isLogin ? '' :
       '<div class="account-switch" role="tablist"><button type="button" class="' + (signupType === 'individual' ? 'active' : '') + '" data-kind="individual">Untuk Individu & Publik</button>' +
       '<button type="button" class="' + (signupType === 'company' ? 'active' : '') + '" data-kind="company">Untuk Perusahaan</button></div>') +
-    '<div id="form"></div></section><p class="auth-safe">Akun dan progres disimpan hanya di browser/perangkat ini. Jangan gunakan kata sandi akun penting.</p></main>';
+    '<div id="form"></div></section></main>';
   form(isLogin ? 'login' : signupType);
   document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click', () => {
     captureRegistrationDraft(signupType);

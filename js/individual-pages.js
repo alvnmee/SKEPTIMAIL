@@ -121,9 +121,14 @@ function game(page) {
     const value = badge.id === 'streak' ? Math.min(badge.target, Number(state.maxStreak) || 0) : badge.progress;
     const percent = Math.min(100, value / badge.target * 100);
     const status = badge.unlocked ? 'Terbuka' : 'Terkunci';
+    const acquiredDate = badge.acquiredAt ? new Date(badge.acquiredAt) : null;
+    const dateLabel = badge.unlocked
+      ? (acquiredDate && Number.isFinite(acquiredDate.getTime()) ? 'Diperoleh ' + acquiredDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Tanggal perolehan belum tercatat')
+      : 'Belum diperoleh';
+    const progressDetail = badge.progressDetail ? '<small class="badge-progress-detail">' + safeText(badge.progressDetail) + '</small>' : '';
     return '<article class="card achievement-badge ' + (badge.unlocked ? 'is-unlocked' : 'is-locked') + '"><div class="badge-topline"><span class="badge-icon" aria-hidden="true"><svg viewBox="0 0 24 24">' + badge.icon + '</svg></span><span class="badge-status ' + (badge.unlocked ? 'status-open' : 'status-locked') + '">' + status + '</span></div>' +
       '<div><h3>' + badge.name + '</h3><p class="badge-description">' + badge.description + '</p></div><p class="badge-criterion"><b>Kriteria</b><span>' + badge.criterion + '</span></p>' +
-      '<div class="badge-progress-copy"><span>' + (badge.unlocked ? 'Syarat terpenuhi' : 'Progres') + '</span><b>' + value + '/' + badge.target + '</b></div><div class="progress badge-progress" role="progressbar" aria-label="Progres ' + badge.name + '" aria-valuemin="0" aria-valuemax="' + badge.target + '" aria-valuenow="' + value + '"><span style="width:' + percent + '%"></span></div></article>';
+      '<div class="badge-progress-copy"><span>' + (badge.unlocked ? 'Syarat terpenuhi' : 'Progres') + '</span><b>' + value + '/' + badge.target + '</b></div>' + progressDetail + '<div class="progress badge-progress" role="progressbar" aria-label="Progres ' + badge.name + '" aria-valuemin="0" aria-valuemax="' + badge.target + '" aria-valuenow="' + value + '"><span style="width:' + percent + '%"></span></div><small class="badge-acquired-date">' + dateLabel + '</small></article>';
   }).join('');
   const percentLabel = Math.round(progress.percent);
   page.innerHTML =

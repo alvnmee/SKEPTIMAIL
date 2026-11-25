@@ -15,7 +15,7 @@ function shell() {
   document.querySelector('#app').innerHTML =
     '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand"><img class="side-brand-logo" src="assets/phishguard-logo-dark.svg" alt="PhishGuard"></div><nav class="nav">' +
     navigation.map(item => '<button data-v="' + item[0] + '" class="' + (item[0] === view ? 'active' : '') + '">' + item[1] + '</button>').join('') +
-    '<button data-v="logout">Keluar</button></nav><div class="side-foot">Akun dan progres tersimpan lokal pada perangkat ini.</div></aside>' +
+    '<button data-v="logout">Keluar</button></nav></aside>' +
     '<main class="main"><div class="topbar"><div><p class="eyebrow">' + (individual ? 'personal learning space' : 'organization workspace') + '</p><h1 id="title"></h1></div>' +
     '<div class="user"><div class="avatar">' + esc((currentAccount.displayName || currentAccount.username).charAt(0).toUpperCase()) + '</div>' +
     '<span class="name">' + esc(currentAccount.displayName) + '<small class="identity-id">@' + esc(currentAccount.username) + '</small></span></div></div><div id="page"></div></main></div>';
@@ -128,11 +128,13 @@ document.querySelector('#app').addEventListener('click', event => {
   }
   if (action === 'next') {
     const session = state.session;
-    if (!session || !session.answers[session.index]) return;
+    if (!session || session.complete || !session.answers[session.index]) return;
     button.disabled = true;
-    if (session.index >= 4) session.complete = true;
-    else session.index++;
-    save();
+    if (session.index >= 4) completeSimulationSession(session);
+    else {
+      session.index++;
+      save();
+    }
     simulation(document.querySelector('#page'));
     return;
   }

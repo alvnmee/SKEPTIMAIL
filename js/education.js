@@ -325,13 +325,12 @@ function education(page) {
 
     <section class="edu-summary" aria-labelledby="edu-summary-title">
       <div class="edu-section-head"><div><p class="eyebrow">RINGKASAN MATERI</p><h2 id="edu-summary-title">Pola yang dipelajari</h2>
-        <p>Distribusi contoh edukasi dan indikator yang dibahas di halaman ini.</p></div><span class="edu-demo-label"><i aria-hidden="true"></i>Data demo</span></div>
-      <p class="edu-demo-caption">Jumlah pertanyaan dalam bank kuis prototype, bukan frekuensi serangan atau statistik ancaman aktual.</p>
+        <p>Distribusi contoh edukasi dan indikator yang dibahas di halaman ini.</p></div></div>
       <div class="edu-summary-layout"><figure class="edu-distribution" aria-labelledby="edu-chart-title">
         <figcaption><h3 id="edu-chart-title">Pertanyaan kuis per kategori</h3><p>Jumlah contoh fiktif yang tersedia untuk latihan.</p></figcaption>
         <div class="edu-bars" role="list">${distribution.map(([label, count]) => `<div class="edu-bar-row" role="listitem" aria-label="${label}: ${count} contoh demo">
           <span>${label}</span><div class="edu-bar-track" aria-hidden="true"><i style="width:${count / maximum * 100}%"></i></div><b>${count}</b></div>`).join('')}</div>
-        <p class="edu-chart-foot">Data demo · Kategori dengan 0 belum memiliki soal kuis</p></figure>
+        <p class="edu-chart-foot">Kategori dengan 0 belum memiliki soal kuis</p></figure>
         <div class="edu-indicators"><div class="edu-indicator-heading"><h3>Indikator yang perlu dilatih</h3><p>Gunakan beberapa petunjuk sekaligus, bukan satu tanda saja.</p></div>
           ${indicators.map((item, index) => `<article class="edu-indicator"><span class="edu-indicator-mark mark-${index + 1}" aria-hidden="true">${['@', '!', '↗', '□'][index]}</span><div><h4>${item[0]}</h4><p>${item[1]}</p></div></article>`).join('')}</div></div>
     </section>
@@ -457,6 +456,7 @@ document.querySelector('#app').addEventListener('click', event => {
       if (progress && !Array.isArray(progress.learningEvents)) progress.learningEvents = [];
       if (progress && state.quizRunId && !progress.learningEvents.some(item => item.id === state.quizRunId)) {
         progress.learningEvents.push({ id: state.quizRunId, type: 'quiz', at: new Date().toISOString() });
+        updateBadges();
         save();
       }
     }

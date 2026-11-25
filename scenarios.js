@@ -161,5 +161,117 @@ window.phishGuardScenarios = [
     message: 'Kurir memperkirakan tiba 17.30–18.00. Jika Anda perlu mengubah jadwal, opsi tersedia sampai pukul 17.00 melalui menu Kiriman di aplikasi. Tidak ada biaya untuk perubahan jadwal ini.',
     link: null,
     feedback: { summary: 'Pesan legitimate dengan tenggat yang relevan terhadap jadwal kiriman.', clues: ['ID kiriman cocok dengan konteks akun simulasi.', 'Instruksi mengarahkan pengguna membuka menu Kiriman di aplikasi, bukan tautan SMS.', 'Batas waktu terkait jadwal kurir dan tidak meminta pembayaran atau data pribadi.'], action: 'Jika ingin mengubah jadwal, buka aplikasi yang sudah terpasang. Tenggat yang wajar tetap sebaiknya diverifikasi di aplikasi.' }
+  },
+  {
+    id: 'qr-parking-fee-e', channel: 'QR Code', category: 'QR phishing', difficulty: 'Easy', answer: 'phish',
+    title: 'Pembayaran parkir tertunda', subject: 'QR pada papan keluar parkir', time: '10.16',
+    sender: { name: 'Parkir Puspa', initials: 'PP', role: 'Informasi area parkir fiktif', address: 'Papan QR di area keluar', domain: 'parkir-puspa.example', color: '#477a9b' },
+    context: 'Papan parkir memiliki stiker QR tambahan dengan instruksi membayar denda sebelum meninggalkan lokasi. Tidak ada nomor kendaraan atau tiket yang cocok.',
+    message: 'Tiket parkir Anda belum tercatat. Pindai kode pada papan ini untuk melunasi biaya Rp3.000 sebelum pukul 10.30: parkir-puspa-bayar.example/selesaikan',
+    link: { label: 'parkir-puspa-bayar.example/selesaikan', url: 'https://parkir-puspa-bayar.example/selesaikan', expectedDomain: 'parkir-puspa.example' },
+    feedback: { summary: 'QR mengarah ke domain pembayaran berbeda dan pesan tidak cocok dengan tiket parkir.', clues: ['Stiker QR tambahan dapat menutupi kode resmi pada papan.', 'Domain parkir-puspa-bayar.example tidak sama dengan domain layanan yang dicantumkan.', 'Pesan memakai denda kecil dan tenggat singkat tanpa nomor tiket yang bisa dicocokkan.'], action: 'Jangan membayar dari QR tersebut. Tanyakan kepada petugas atau gunakan mesin pembayaran yang sudah dikenal.' }
+  },
+  {
+    id: 'email-apk-tax-e', channel: 'Email', category: 'Malicious attachments', difficulty: 'Easy', answer: 'phish',
+    title: 'Rincian pajak karyawan', subject: 'Dokumen pajak perlu dipasang', time: '08.52',
+    sender: { name: 'Pusat Pajak Lazuardi', initials: 'PL', role: 'Pengirim yang mengaku layanan pajak', address: 'dokumen@pajak-lazuardi-update.example', domain: 'pajak-lazuardi-update.example', color: '#8c5b9e' },
+    context: 'Tidak ada pengumuman bahwa layanan pajak perusahaan akan mengirim aplikasi melalui email.',
+    message: 'Rincian potongan pajak tahun ini tersedia pada file terlampir. Pasang aplikasi Android untuk membukanya sebelum data dikunci.',
+    link: null,
+    attachment: { name: 'Rincian-Pajak-2026.apk', type: 'APK', size: '2,4 MB' },
+    feedback: { summary: 'Email ini meminta pemasangan file APK yang tidak wajar untuk dokumen pajak.', clues: ['Dokumen pajak tidak perlu dibuka dengan aplikasi Android dari lampiran email.', 'Alamat pengirim memakai domain pembaruan yang tidak dikenal.', 'Ancaman data dikunci mendorong tindakan cepat.'], action: 'Jangan unduh atau pasang file. Hapus pesan dan tanyakan kepada HR atau tim TI melalui kontak internal.' }
+  },
+  {
+    id: 'wa-lunch-room-e', channel: 'WhatsApp', category: 'Legitimate message', difficulty: 'Easy', answer: 'legit',
+    title: 'Perubahan ruang makan siang', subject: 'Grup Tim Produk', time: '11.05',
+    sender: { name: 'Mira Putri', initials: 'MP', role: 'Rekan tim produk · kontak tersimpan', address: 'Kontak tersimpan · Mira Putri', domain: 'ruangkerja.lazuarikreasi.example', color: '#168d83' },
+    context: 'Mira adalah anggota grup proyek yang sudah dikenal. Pesan sebelumnya membahas jadwal makan siang tim.',
+    message: 'Meja kita pindah ke sisi taman karena ruang utama dipakai rapat. Aku sudah kabari yang lain di grup. Sampai pukul 12 ya; tidak ada yang perlu dibuka atau dibayar.',
+    link: null,
+    feedback: { summary: 'Pesan sesuai dengan percakapan grup yang sudah ada dan tidak meminta tindakan sensitif.', clues: ['Pengirim adalah kontak tersimpan dalam grup yang relevan.', 'Perubahan tempat makan konsisten dengan percakapan sebelumnya.', 'Tidak ada tautan, permintaan kode, atau tekanan untuk membagikan data.'], action: 'Jika detail tempat masih kurang jelas, tanyakan di grup yang sama sebelum berangkat.' }
+  },
+  {
+    id: 'email-training-reminder-e', channel: 'Email', category: 'Legitimate message', difficulty: 'Easy', answer: 'legit',
+    title: 'Pengingat kelas keamanan', subject: 'Kelas pengenalan keamanan besok', time: '15.38',
+    sender: { name: 'Tim Pembelajaran Lazuardi', initials: 'TP', role: 'Learning & Development · fiktif', address: 'belajar@lazuarikreasi.example', domain: 'lazuarikreasi.example', color: '#277b89' },
+    context: 'Kelas keamanan tercantum pada kalender internal dan pengumuman portal karyawan sebelumnya.',
+    message: 'Pengingat: kelas pengenalan keamanan dimulai besok pukul 09.00 di ruang Kenari. Materi juga tersedia melalui menu Pembelajaran pada portal karyawan. Anda tidak perlu membalas email ini.',
+    link: null,
+    feedback: { summary: 'Pengingat cocok dengan jadwal yang sudah tercatat dan tidak meminta kredensial atau pembayaran.', clues: ['Jadwal dan lokasi sama dengan kalender internal.', 'Pengirim menggunakan domain organisasi yang dikenal.', 'Ada jalur mandiri melalui menu Pembelajaran, tanpa tautan mendesak.'], action: 'Cocokkan kembali jadwal di kalender atau portal internal jika ada perubahan.' }
+  },
+  {
+    id: 'wa-maintenance-code-m', channel: 'WhatsApp', category: 'Social engineering', difficulty: 'Medium', answer: 'phish',
+    title: 'Kode akses untuk teknisi', subject: 'Pesan langsung dari fasilitas', time: '13.42',
+    sender: { name: 'Danu · Fasilitas Gedung', initials: 'DF', role: 'Mengaku petugas fasilitas', address: 'Nomor baru · belum tersimpan', domain: 'gedung-bantuan.example', color: '#b06c36' },
+    context: 'Memang ada jadwal pemeriksaan pintu sore ini, tetapi pemberitahuan fasilitas menyebut teknisi akan didampingi petugas dan tidak meminta kode akses pribadi.',
+    message: 'Siang, saya sedang menuju ruang arsip untuk pengecekan. Supaya tidak menunggu, kirim kode akses pintu yang muncul di ponsel Anda. Saya dari tim gedung, nanti saya hapus setelah dipakai.',
+    link: null,
+    feedback: { summary: 'Pengirim memanfaatkan jadwal yang benar untuk meminta kode akses rahasia melalui kontak yang tidak terverifikasi.', clues: ['Nomor baru tidak tercatat sebagai kanal fasilitas.', 'Jadwal pemeriksaan tidak mengharuskan karyawan membagikan kode pribadi.', 'Janji menghapus kode setelah dipakai tidak mengurangi risiko akses.'], action: 'Jangan kirim kode. Hubungi fasilitas lewat direktori internal dan minta petugas menunjukkan identitas.' }
+  },
+  {
+    id: 'email-project-pack-m', channel: 'Email', category: 'Legitimate message', difficulty: 'Medium', answer: 'legit',
+    title: 'Paket materi rapat desain', subject: 'Bahan lokakarya yang kita minta', time: '09.26',
+    sender: { name: 'Dimas Ardi', initials: 'DA', role: 'Rekan tim desain · Lazuardi Kreasi', address: 'dimas.ardi@lazuarikreasi.example', domain: 'lazuarikreasi.example', color: '#477a9b' },
+    context: 'Tim meminta Dimas mengirim ringkasan PDF setelah lokakarya kemarin. Balasan berada pada utas undangan rapat yang sama.',
+    message: 'Terlampir ringkasan lokakarya dan daftar keputusan yang kita minta. Versi yang sama juga saya taruh di folder Proyek/Desain pada RuangKerja. Silakan bandingkan dengan folder itu bila perlu.',
+    link: null,
+    attachment: { name: 'Ringkasan-Lokakarya-Desain.pdf', type: 'PDF', size: '684 KB' },
+    feedback: { summary: 'Lampiran sesuai dengan permintaan sebelumnya, datang dari rekan yang dikenal, dan memiliki jalur verifikasi di folder tim.', clues: ['Email merupakan balasan pada utas rapat yang relevan.', 'Jenis dan nama file cocok dengan materi yang diminta.', 'Ada salinan pembanding pada folder kerja yang sudah dikenal.'], action: 'Buka file hanya jika sesuai dengan permintaan. Verifikasi lewat folder bersama bila nama atau isi lampiran berbeda.' }
+  },
+  {
+    id: 'qr-cafe-menu-m', channel: 'QR Code', category: 'Legitimate message', difficulty: 'Medium', answer: 'legit',
+    title: 'Menu digital Kafe Pendar', subject: 'QR pada meja kasir', time: '12.18',
+    sender: { name: 'Kafe Pendar', initials: 'KP', role: 'Menu digital fiktif', address: 'Kode QR pada meja kasir', domain: 'menu.kafependar.example', color: '#a56c38' },
+    context: 'Anda berada di Kafe Pendar. Domain pada QR sama dengan alamat menu yang tercetak pada struk dan tidak meminta login atau pembayaran.',
+    message: 'Menu hari ini dapat dilihat di menu.kafependar.example. Pemesanan dan pembayaran tetap dilakukan langsung melalui kasir; halaman menu tidak meminta data akun.',
+    link: { label: 'menu.kafependar.example', url: 'https://menu.kafependar.example/', expectedDomain: 'menu.kafependar.example' },
+    feedback: { summary: 'QR sesuai dengan konteks tempat dan membuka halaman menu tanpa meminta data sensitif.', clues: ['QR berada di meja kasir yang sesuai dengan layanan.', 'Domain cocok dengan alamat yang juga tercetak pada struk.', 'Halaman hanya menampilkan menu dan tidak meminta login atau pembayaran.'], action: 'Periksa domain sebelum membuka QR. Jika tujuan atau permintaan halaman berubah, tutup dan tanyakan kepada staf.' }
+  },
+  {
+    id: 'email-macro-minutes-m', channel: 'Email', category: 'Malicious attachments', difficulty: 'Medium', answer: 'phish',
+    title: 'Notulen rapat perlu ditinjau', subject: 'Mohon aktifkan konten dokumen', time: '16.07',
+    sender: { name: 'Sekretariat Proyek', initials: 'SP', role: 'Nama pengirim tidak terverifikasi', address: 'notulen@sekretariat-lk.example', domain: 'sekretariat-lk.example', color: '#8c5b9e' },
+    context: 'Rapat proyek memang berlangsung pagi ini, tetapi notulen normalnya dibagikan sebagai PDF di folder RuangKerja.',
+    message: 'Saya kirim draf notulen untuk koreksi. Dokumen mungkin tampil kosong sampai Anda mengaktifkan makro atau konten tambahan. Mohon tinjau sebelum rapat tindak lanjut.',
+    link: null,
+    attachment: { name: 'Notulen-Proyek.docm', type: 'DOCM', size: '312 KB' },
+    feedback: { summary: 'Lampiran meminta makro diaktifkan meski konteks tim memiliki jalur dokumen yang sudah dikenal.', clues: ['File DOCM dapat memuat makro yang menjalankan tindakan aktif.', 'Instruksi mengaktifkan konten adalah alasan untuk berhenti dan memeriksa.', 'Domain pengirim berbeda dari RuangKerja yang digunakan proyek.'], action: 'Jangan aktifkan makro. Cari notulen di folder RuangKerja atau konfirmasi kepada sekretariat lewat kontak terverifikasi.' }
+  },
+  {
+    id: 'email-ceo-audit-h', channel: 'Email', category: 'Social engineering', difficulty: 'Hard', answer: 'phish',
+    title: 'Permintaan data audit mendadak', subject: 'Mohon kirim sebelum rapat dewan', time: '06.54',
+    sender: { name: 'Arman Wijaya · Direktur', initials: 'AW', role: 'Nama eksekutif organisasi fiktif', address: 'arman.wijaya@lazuarikreasi.example', domain: 'lazuarikreasi.example', replyTo: 'audit-khusus@lk-advisory.example', color: '#9c5c58' },
+    context: 'Direktur memang memimpin audit, tetapi kebijakan perusahaan mengharuskan data karyawan dibagikan melalui ruang audit dengan persetujuan Legal. Rapat dewan baru dijadwalkan pekan depan.',
+    message: 'Saya sedang berpindah rapat dan perlu daftar rekening pemasok serta kontak penanggung jawab sebelum briefing pagi ini. Balas langsung ke alamat audit khusus ini agar berkas tidak masuk ke folder umum. Tolong jangan menyalin tim lain dahulu.',
+    link: null,
+    feedback: { summary: 'Pesan memakai nama eksekutif dan konteks audit yang masuk akal, tetapi menyimpang dari prosedur dan meminta kerahasiaan.', clues: ['Reply-To mengarah ke domain pihak lain yang tidak tercatat.', 'Permintaan data keuangan dan kontak sensitif tidak mengikuti ruang audit yang diwajibkan.', 'Instruksi untuk merahasiakan permintaan dan tenggat mendadak merupakan tekanan otoritas.'], action: 'Jangan membalas atau mengirim data. Verifikasi langsung lewat direktori internal dan ikuti proses persetujuan Legal.' }
+  },
+  {
+    id: 'email-contract-appendix-h', channel: 'Email', category: 'Legitimate message', difficulty: 'Hard', answer: 'legit',
+    title: 'Lampiran perubahan kontrak', subject: 'Lampiran B untuk peninjauan', time: '14.32',
+    sender: { name: 'Nadia · Pengadaan', initials: 'NP', role: 'Pengadaan · Lazuardi Kreasi', address: 'nadia@lazuarikreasi.example', domain: 'lazuarikreasi.example', replyTo: 'nadia@lazuarikreasi.example', color: '#168d83' },
+    context: 'Lampiran B memang diminta oleh Legal pada utas pengadaan yang sama. Versi final juga tercatat pada sistem kontrak internal dengan nomor revisi yang cocok.',
+    message: 'Terlampir Lampiran B versi 3 sesuai daftar perubahan Legal. Nomor revisi dan tanggal sama dengan catatan pada sistem kontrak. Jika Anda tidak sedang meninjau kontrak ini, buka sistem kontrak dari bookmark sebelum memakai lampiran.',
+    link: null,
+    attachment: { name: 'Kontrak-Lampiran-B-v3.pdf', type: 'PDF', size: '1,1 MB' },
+    feedback: { summary: 'Lampiran legitimate dalam konteks simulasi karena permintaan, utas, dan nomor revisinya dapat diverifikasi melalui sistem resmi.', clues: ['Lampiran diminta sebelumnya oleh Legal pada utas yang sama.', 'Nomor revisi cocok dengan catatan sistem kontrak internal.', 'Pesan menyarankan verifikasi mandiri dan tidak meminta makro atau kredensial.'], action: 'Cocokkan versi dan nomor revisi di sistem kontrak sebelum menandatangani atau meneruskan dokumen.' }
+  },
+  {
+    id: 'qr-event-checkin-h', channel: 'QR Code', category: 'Legitimate message', difficulty: 'Hard', answer: 'legit',
+    title: 'Check-in lokakarya internal', subject: 'QR di meja registrasi acara', time: '08.47',
+    sender: { name: 'Tim Acara Lazuardi', initials: 'TA', role: 'Penyelenggara lokakarya fiktif', address: 'Papan registrasi ruang Kenari', domain: 'acara.lazuarikreasi.example', color: '#277b89' },
+    context: 'Lokakarya tercantum di kalender perusahaan. QR berada pada meja registrasi resmi, dan domain tujuan sama dengan alamat acara pada undangan internal.',
+    message: 'Gunakan QR ini untuk mencatat kehadiran lokakarya. Halaman hanya meminta kode acara yang tercetak pada undangan dan menampilkan nama sesi; jangan masukkan kata sandi atau data pribadi.',
+    link: { label: 'acara.lazuarikreasi.example/check-in', url: 'https://acara.lazuarikreasi.example/check-in', expectedDomain: 'acara.lazuarikreasi.example' },
+    feedback: { summary: 'QR ini legitimate berdasarkan lokasi, jadwal, domain, dan batas data yang diminta.', clues: ['Lokasi QR adalah meja registrasi resmi untuk acara yang tercantum di kalender.', 'Domain tujuan cocok dengan undangan internal.', 'Halaman hanya memakai kode acara, bukan kredensial akun.'], action: 'Tetap cocokkan domain dan jenis data yang diminta. Jika QR berpindah lokasi atau meminta kata sandi, hentikan dan tanyakan kepada penyelenggara.' }
+  },
+  {
+    id: 'sms-vendor-bank-change-h', channel: 'SMS', category: 'Payment change', difficulty: 'Hard', answer: 'phish',
+    title: 'Perubahan rekening pemasok', subject: 'Pesan dari nomor pengelola vendor', time: '17.12',
+    sender: { name: 'Bagian Tagihan Sembada', initials: 'BS', role: 'Kontak pemasok yang mengaku bagian tagihan', address: 'Nomor baru · belum tersimpan', domain: 'sembada-tagihan.example', color: '#9c5c58' },
+    context: 'PT Sembada adalah pemasok fiktif yang sudah dikenal. Prosedur pembayaran menyatakan perubahan rekening harus dikonfirmasi ke nomor kontak pada kontrak dan disetujui dua orang.',
+    message: 'Kami mengganti rekening operasional untuk pembayaran faktur bulan ini. Mohon perbarui data sebelum penutupan hari ini agar transfer tidak tertunda. Saya kirim detailnya di chat ini setelah Anda membalas “siap”.',
+    link: null,
+    feedback: { summary: 'Pesan meminta perubahan instruksi pembayaran lewat nomor baru dan mencoba melewati pemeriksaan ganda.', clues: ['Perubahan rekening adalah permintaan berisiko tinggi, walau nama pemasok dikenal.', 'Nomor pengirim belum terverifikasi dan berbeda dari kontak kontrak.', 'Tenggat hari ini dan pengiriman detail setelah mendapat balasan menghindari proses resmi.'], action: 'Jangan membalas atau mengubah rekening. Hubungi nomor pada kontrak dan minta persetujuan sesuai prosedur.' }
   }
 ];

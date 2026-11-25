@@ -86,7 +86,8 @@ function iconSvg(channel) {
     Email: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>',
     SMS: '<path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8 8 0 0 1-4-.9L4 20l1.5-3.4A7.2 7.2 0 0 1 4 12c0-4.1 3.6-7 8-7s8 2.5 8 6.5Z"/><path d="M8 11h8M8 14h5"/>',
     Website: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-    'Notifikasi akun': '<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/>'
+    'Notifikasi akun': '<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/>',
+    'QR Code': '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h2v2h-2zM18 14h2v6h-6v-2M7 7h.01M17 7h.01M7 17h.01"/>'
   };
   return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (paths[channel] || paths.Email) + '</svg>';
 }
@@ -230,6 +231,18 @@ function renderWebsitePreview(scenario) {
 }
 
 
+// Function: renderQrCodeMessage
+function renderQrCodeMessage(scenario) {
+  const sender = scenario.sender;
+  const initials = sender.initials || sender.name.split(' ').map(part => part[0]).slice(0, 2).join('');
+  return '<div class="message-app qr-simulation-app"><header class="qr-app-header"><span class="qr-app-icon">' + iconSvg('QR Code') +
+    '</span><span><b>QR Code</b><small>Pratinjau pemindaian lokal</small></span><time>' + safeText(scenario.time) + '</time></header>' +
+    '<article class="qr-notice"><div class="qr-sender"><span class="app-avatar" style="--sender-color:' + safeText(sender.color) + '">' + safeText(initials) +
+    '</span><span><b>' + safeText(sender.name) + '</b><small>' + safeText(sender.address || sender.role) + '</small></span></div><div class="qr-notice-copy"><span class="qr-kicker">KONTEN DI BALIK KODE</span><h3>' +
+    safeText(scenario.title) + '</h3>' + messageParagraphs(scenario, 'message-inline-link') + '</div><div class="qr-scan-preview"><svg class="qr-code-visual" viewBox="0 0 21 21" role="img" aria-label="Pola QR ilustratif, tidak dapat dipindai"><rect width="21" height="21" rx="1" fill="#fff"/><path fill="#081725" d="M2 2h7v7H2zM12 2h7v7h-7zM2 12h7v7H2zM11 11h2v2h-2zM14 11h2v2h-2zM18 11h1v3h-1zM11 15h2v4h-2zM14 15h5v2h-5zM16 18h3v1h-3z"/><path fill="#fff" d="M4 4h3v3H4zM14 4h3v3h-3zM4 14h3v3H4z"/><path fill="#081725" d="M5 5h1v1H5zM15 5h1v1h-1zM5 15h1v1H5z"/></svg><span><b>Pratinjau kode</b><small>Visual latihan statis; kamera dan pemindaian tidak diaktifkan.</small></span></div></article></div>';
+}
+
+
 // Function: renderLegacyMessage
 function renderLegacyMessage(scenario) {
   const sender = scenario.sender;
@@ -250,6 +263,7 @@ function renderScenarioMessage(scenario) {
   if (scenario.channel === 'Email') return renderEmailMessage(scenario);
   if (scenario.channel === 'Notifikasi akun') return renderAccountNotification(scenario);
   if (scenario.channel === 'Website') return renderWebsitePreview(scenario);
+  if (scenario.channel === 'QR Code') return renderQrCodeMessage(scenario);
   return renderLegacyMessage(scenario);
 }
 
@@ -274,7 +288,7 @@ function linkPanel(scenario) {
   return '<div class="sim-inspector link-inspector" id="link-inspector" hidden><div><span>Teks yang terlihat</span><b>' + safeText(scenario.link.label) +
     '</b></div><div><span>Tujuan simulasi</span><b>' + safeText(scenario.link.url) + '</b></div><div><span>Domain tujuan</span><b>' + safeText(host) +
     '</b></div><div><span>Domain yang diharapkan</span><b>' + safeText(scenario.link.expectedDomain) +
-    '</b></div><small>Alamat ditampilkan sebagai teks lokal. Tidak ada tautan yang dibuka.</small></div>';
+    '</b></div></div>';
 }
 
 
@@ -293,7 +307,7 @@ function sessionIntro(page) {
     ? '<div class="simulation-quota"><b>Kuota Free bulan ini</b><span>' + quotaLabel + ' · ' + remaining + ' tersisa</span><small>Kuota diperbarui ' + formatDate(nextPeriodDate(new Date())) + '. Satu sesi berisi lima skenario.</small></div>'
     : '<div class="simulation-quota"><b>' + esc(activePlanLabel()) + '</b><span>Simulasi tanpa batas selama paket aktif</span><small>' + (getSubscription().expiresAt ? 'Paket berakhir ' + formatDate(getSubscription().expiresAt) : 'Data progres tetap terikat pada akun ini.') + '</small></div>';
   page.innerHTML = '<section class="card session-intro"><span class="eyebrow">LATIHAN LOKAL · DATA FIKTIF</span><h2>Latih penilaian, bukan refleks.</h2>' +
-    '<p class="muted">Satu sesi berisi lima contoh dari WhatsApp, email, SMS, notifikasi, dan halaman web. Pesan legitimate dan phishing dicampur; jawaban baru dibahas setelah Anda memilih.</p>' +
+    '<p class="muted">Satu sesi berisi lima contoh dari WhatsApp, email, SMS, notifikasi, halaman web, atau QR. Beberapa skenario juga memiliki lampiran. Pesan legitimate dan phishing dicampur; jawaban baru dibahas setelah Anda memilih.</p>' +
     '<div class="session-facts"><span>5 skenario acak</span><span>' + (hasAccess('advanced-scenarios') ? 'Easy · Medium · Hard' : 'Easy · Medium · Hard tersedia di Premium') + '</span><span>Tautan tidak membuka situs</span></div>' + quotaNote +
     (limitReached ? '<button class="primary" type="button" data-open-plan>Kuota habis · lihat paket</button>' : '<button class="primary" type="button" data-sim-action="start">Mulai sesi simulasi</button>') + '</section>';
 }
@@ -304,12 +318,13 @@ function sessionSummary(page) {
   const session = state.session;
   const results = session.answers.filter(Boolean);
   const correct = results.filter(item => item.correct).length;
-  const earnedXp = results.reduce((sum, item) => sum + item.xp, 0);
+  const earnedXp = results.reduce((sum, item) => sum + item.xp, 0) + (Number(session.bonusXp) || 0);
+  const bonusNote = Number(session.bonusXp) > 0 ? '<p class="muted session-bonus-note">Bonus sesi tanpa kesalahan: +' + Number(session.bonusXp) + ' XP.</p>' : '';
   const restartAction = canStartSimulation()
     ? '<button class="primary" data-sim-action="restart">Mulai sesi baru</button>'
     : '<div class="simulation-quota"><b>Kuota Free bulan ini sudah habis</b><span>Progres dan hasil sesi ini tetap tersimpan.</span><small>Kuota diperbarui ' + formatDate(nextPeriodDate(new Date())) + '.</small></div><button class="primary" data-open-plan>Lihat paket Premium</button>';
   page.innerHTML = '<section class="card session-summary"><span class="eyebrow">SESI SELESAI</span><h2>Hasil latihan Anda</h2>' +
-    '<p class="muted">Lima skenario dicatat satu kali. Pembahasan tersedia di riwayat profil akun ini.</p><div class="grid three">' +
+    '<p class="muted">Lima skenario dicatat satu kali. Pembahasan tersedia di riwayat profil akun ini.</p>' + bonusNote + '<div class="grid three">' +
     '<div><span class="mini-score">' + correct + '/5</span><br><small class="muted">jawaban tepat</small></div><div><span class="mini-score">' + earnedXp +
     '</span><br><small class="muted">XP sesi</small></div><div><span class="mini-score">' + state.streak + '</span><br><small class="muted">streak saat ini</small></div></div>' +
     '<div class="session-review">' + results.map((result, index) => {
@@ -353,16 +368,43 @@ function simulation(page) {
     '<small> / 5</small></div><div class="progress"><span style="width:' + (progress / 5 * 100) + '%"></span></div><div class="difficulty-list">' +
     '<span class="' + (scenario.difficulty === 'Easy' ? 'current' : '') + '">Easy</span><span class="' + (scenario.difficulty === 'Medium' ? 'current' : '') +
     '">Medium</span><span class="' + (scenario.difficulty === 'Hard' ? 'current' : '') + '">Hard</span></div><h3>Periksa sebelum percaya</h3>' +
-    '<p class="muted">Cocokkan identitas, domain, konteks, serta tindakan yang diminta. Beberapa contoh aman juga dapat memiliki tenggat waktu yang wajar.</p>' +
-    '<div class="demo-safety">Latihan lokal. Jangan pernah memasukkan data pribadi atau kata sandi sungguhan.</div></aside></div>';
+    '<p class="muted">Cocokkan identitas, domain, konteks, serta tindakan yang diminta. Beberapa contoh aman juga dapat memiliki tenggat waktu yang wajar.</p></aside></div>';
 }
 
 
 // Function: updateBadges
 function updateBadges() {
+  if (!Array.isArray(state.badges)) state.badges = [];
+  if (!state.badgeDates || typeof state.badgeDates !== 'object' || Array.isArray(state.badgeDates)) state.badgeDates = {};
   badgeDefinitions(state).filter(badge => badge.unlocked).forEach(badge => {
-    if (!state.badges.includes(badge.id)) state.badges.push(badge.id);
+    if (!state.badges.includes(badge.id)) {
+      state.badges.push(badge.id);
+      state.badgeDates[badge.id] = new Date().toISOString();
+    }
   });
+}
+
+
+// Function: completeSimulationSession
+function completeSimulationSession(session) {
+  if (!session || session.complete || session.index < 4 || !session.answers[session.index]) return false;
+  session.complete = true;
+  if (!session.bonusAwarded) {
+    session.bonusAwarded = true;
+    if (session.answers.length === 5 && session.answers.every(answer => answer && answer.correct)) {
+      const bonusXp = 25;
+      const now = new Date().toISOString();
+      session.bonusXp = bonusXp;
+      session.earnedXp = (Number(session.earnedXp) || 0) + bonusXp;
+      state.xp += bonusXp;
+      state.xpEvents.unshift({ at: now, xp: bonusXp });
+      state.scoreHistory.push({ at: now, score: score() });
+      state.scoreHistory = state.scoreHistory.slice(-52);
+    }
+  }
+  updateBadges();
+  save();
+  return true;
 }
 
 
@@ -373,7 +415,7 @@ function answer(choice) {
   const scenario = activeScenario();
   if (!scenario) return;
   const correct = choice === scenario.answer;
-  const earned = correct ? 50 : 0;
+  const earned = correct ? ({ Easy: 20, Medium: 35, Hard: 50 }[scenario.difficulty] || 0) : 0;
   const now = new Date();
   session.answers[session.index] = { choice: choice, correct: correct, xp: earned, category: scenario.category };
   session.earnedXp = (session.earnedXp || 0) + earned;
