@@ -359,8 +359,7 @@ function simulation(page) {
       '</p><button class="primary" data-sim-action="next">' + (session.index === 4 ? 'Lihat ringkasan sesi' : 'Lanjut ke skenario berikutnya') + '</button></section>'
     : '';
   page.innerHTML = '<div class="grid simulate-layout"><section class="card scenario-card"><div class="scenario-head"><div><span class="eyebrow">' +
-    safeText(scenario.channel) + ' · ' + safeText(scenario.difficulty) + '</span><h2>' + safeText(scenario.title) + '</h2></div>' +
-    '<span class="tag">' + (priorAnswer ? safeText(scenario.category) : 'Kategori belum diungkap') + '</span></div><div class="simulation-status"><span>SIMULASI EDUKASI</span><small>Tautan tidak membuka situs atau layanan</small></div><div class="sim-message message-host">' + messageMarkup +
+    safeText(scenario.channel) + ' · ' + safeText(scenario.difficulty) + '</span><h2>' + safeText(scenario.title) + '</h2></div></div><div class="simulation-status"><span>SIMULASI EDUKASI</span><small>Tautan tidak membuka situs atau layanan</small></div><div class="sim-message message-host">' + messageMarkup +
     '</div><div class="inspection-actions"><button class="ghost" data-sim-action="inspect-sender" aria-expanded="false">Lihat pengirim & konteks</button>' +
     '<button class="ghost" data-sim-action="analyze-link" aria-expanded="false">' + (scenario.link ? 'Analisis tautan' : 'Periksa detail pesan') + '</button></div>' +
     inspectPanel(scenario) + linkPanel(scenario) + '<p class="muted answer-prompt">Menurut Anda, pesan simulasi ini phishing atau legitimate?</p>' + answerMarkup + feedbackMarkup +
