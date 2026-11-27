@@ -12,7 +12,7 @@ Kemudian buka `http://localhost:4173`.
 
 ## Akun lokal
 
-Daftarkan akun individu atau perusahaan melalui form, lalu masuk menggunakan ID pengguna atau email dan kata sandi yang dibuat saat registrasi. Akun dan progres disimpan di `localStorage` browser/perangkat ini saja; tidak tersinkronisasi ke perangkat lain. Karena prototype tidak memiliki backend, jangan gunakan kata sandi yang dipakai untuk layanan penting.
+Daftarkan akun individu atau perusahaan melalui form, lalu masuk menggunakan ID pengguna atau email dan kata sandi yang dibuat saat registrasi. Akun dan progres disimpan di `localStorage` browser/perangkat ini saja; tidak tersinkronisasi ke perangkat lain. 
 
 ## Demo singkat
 
