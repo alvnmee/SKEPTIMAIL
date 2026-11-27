@@ -320,7 +320,7 @@ function education(page) {
         <p>Pelajari pola penipuan digital, periksa petunjuknya, lalu latih keputusan yang lebih aman dalam contoh lokal.</p>
         <div class="edu-hero-actions"><button type="button" class="primary" data-edu-action="scroll-lessons">Mulai Belajar <span aria-hidden="true">→</span></button>
           <button type="button" class="ghost" data-edu-action="scroll-quiz">Uji Kemampuan <span aria-hidden="true">↗</span></button></div>
-      </div><figure class="edu-hero-art"><img src="assets/education/phishguard-education-hero.png" alt="Ilustrasi pesan mencurigakan yang disaring oleh perisai digital untuk pembelajaran keamanan." width="1536" height="1024"></figure>
+      </div><figure class="edu-hero-art"><img src="assets/education/education-hero.png" alt="Ilustrasi pesan mencurigakan yang disaring oleh perisai digital untuk pembelajaran keamanan." width="1536" height="1024"></figure>
     </section>
 
     <section class="edu-summary" aria-labelledby="edu-summary-title">

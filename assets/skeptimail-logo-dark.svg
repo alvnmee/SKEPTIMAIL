@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 690" role="img" aria-labelledby="title desc">
+  <title id="title">Skeptimail Logo Dark</title>
+  <desc id="desc">Geometric angular S symbol in navy and cyan, with Skeptimail wordmark on a white background.</desc>
+  <defs>
+    <linearGradient id="cyan" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#79D5E2"/>
+      <stop offset="1" stop-color="#4AAFC5"/>
+    </linearGradient>
+  </defs>
+  <rect width="2048" height="690" fill="#FFFFFF"/>
+  <!-- Geometric S emblem, drawn as filled polygons to avoid stroke/join rendering issues. -->
+  <g>
+    <path fill="#121625" d="M340 80 L518 185 L518 294 L334 184 L140 284 L140 202 Z"/>
+    <path fill="#121625" d="M168 291 L274 236 L518 375 L518 470 L310 590 L282 574 L282 500 L407 426 Z"/>
+    <path fill="url(#cyan)" d="M140 307 L264 375 L264 565 L140 495 Z"/>
+  </g>
+  <text x="630" y="420"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="250" font-weight="700" letter-spacing="-10"
+        fill="#121625">Skepti<tspan fill="#4AAFC5">mail</tspan></text>
+</svg>

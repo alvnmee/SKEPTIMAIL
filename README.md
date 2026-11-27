@@ -1,6 +1,6 @@
-# PhishGuard prototype
+# Skeptimail prototype
 
-Prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang aman. 
+Skeptimail adalah prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang aman.
 
 ## Menjalankan
 

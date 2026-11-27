@@ -2,9 +2,9 @@
 function login() {
   const isLogin = authMode === 'login';
   document.querySelector('#app').innerHTML =
-    '<main class="auth auth-light"><div class="auth-top"><div class="auth-logo"><img class="auth-logo-image" src="assets/phishguard-logo-dark.svg" alt="PhishGuard"></div></div>' +
+    '<main class="auth auth-light"><div class="auth-top"><div class="auth-logo"><img class="auth-logo-image" src="assets/skeptimail-logo-light.svg" alt="Skeptimail"></div></div>' +
     '<section class="auth-card auth-wide"><div class="auth-heading"><p class="eyebrow">' + (isLogin ? 'AKSES PLATFORM' : 'MULAI BELAJAR DENGAN AMAN') + '</p>' +
-    '<h1>' + (isLogin ? 'Masuk ke PhishGuard' : 'Daftar Akun PhishGuard') + '</h1><p>' +
+    '<h1>' + (isLogin ? 'Masuk ke Skeptimail' : 'Daftar Akun Skeptimail') + '</h1><p>' +
     (isLogin ? 'Masuk menggunakan ID pengguna atau email yang Anda daftarkan.' : 'Buat akun lokal untuk menyimpan progres latihan pada browser ini.') +
     '</p></div>' + (isLogin ? '' :
       '<div class="account-switch" role="tablist"><button type="button" class="' + (signupType === 'individual' ? 'active' : '') + '" data-kind="individual">Untuk Individu & Publik</button>' +

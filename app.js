@@ -1,4 +1,4 @@
-const scenarioBank = window.phishGuardScenarios || [];
+const scenarioBank = window.skeptimailScenarios || [];
 accounts = readAccounts();
 state = createProgress();
 
@@ -13,7 +13,7 @@ function shell() {
     ? [['dashboard', 'Dashboard'], ['simulation', 'Simulasi'], ['game', 'Pencapaian'], ['profile', 'Profil & Laporan'], ['education', 'Edukasi'], ['subscription', 'Paket']]
     : [['company', 'Company Dashboard'], ['education', 'Edukasi'], ['subscription', 'Paket']];
   document.querySelector('#app').innerHTML =
-    '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand"><img class="side-brand-logo" src="assets/phishguard-logo-dark.svg" alt="PhishGuard"></div><nav class="nav">' +
+    '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand"><img class="side-brand-logo" src="assets/skeptimail-logo-light.svg" alt="Skeptimail"></div><nav class="nav">' +
     navigation.map(item => '<button data-v="' + item[0] + '" class="' + (item[0] === view ? 'active' : '') + '">' + item[1] + '</button>').join('') +
     '<button data-v="logout">Keluar</button></nav></aside>' +
     '<main class="main"><div class="topbar"><div><p class="eyebrow">' + (individual ? 'personal learning space' : 'organization workspace') + '</p><h1 id="title"></h1></div>' +
@@ -53,7 +53,7 @@ function app() {
     profile: 'Profil & laporan training',
     company: 'Dashboard perusahaan',
     education: 'Tren & edukasi',
-    subscription: 'Paket PhishGuard'
+    subscription: 'Paket Skeptimail'
   };
   if (role === 'company' && view !== 'company' && view !== 'education' && view !== 'subscription') view = 'company';
   document.querySelector('#title').textContent = titles[view] || titles.dashboard;

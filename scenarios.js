@@ -1,5 +1,5 @@
 // Entirely fictional scenario data. URLs are inert text under reserved .example domains.
-window.phishGuardScenarios = [
+window.skeptimailScenarios = [
   {
     id: 'wa-hr-reset-e', channel: 'WhatsApp', category: 'Impersonation', difficulty: 'Easy', answer: 'phish',
     title: 'Pembaruan data benefit', subject: 'Chat langsung', time: '09.14',

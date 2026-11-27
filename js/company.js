@@ -89,7 +89,7 @@ function companyWorkspace(account) {
 function downloadCompanyReport() {
   if (!hasAccess('company-dashboard')) return;
   const employees = companyWorkspace().employees;
-  const rows = [['PhishGuard · laporan simulasi lokal · tidak mewakili hasil pengiriman nyata'], [],
+  const rows = [['Skeptimail · laporan simulasi lokal · tidak mewakili hasil pengiriman nyata'], [],
     ['ID karyawan', 'Karyawan', 'Departemen', 'Jawaban tepat', 'Total hasil', 'Akurasi', 'Hasil terakhir', 'Kategori terakhir', 'Waktu terakhir']];
   employees.forEach(employee => {
     const total = employee.results.length;
@@ -106,7 +106,7 @@ function downloadCompanyReport() {
   const url = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'phishguard-laporan-' + currentAccount.id + '.csv';
+  link.download = 'skeptimail-laporan-' + currentAccount.id + '.csv';
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   const message = document.querySelector('#companymsg');

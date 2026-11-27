@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Skeptimail App Icon</title>
+  <desc id="desc">A geometric S symbol in white and cyan on a rounded navy square.</desc>
+  <defs>
+    <linearGradient id="cyan" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#79D5E2"/>
+      <stop offset="1" stop-color="#4AAFC5"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="#121625"/>
+  <g transform="translate(0 0)">
+    <path fill="#F7FAFC" d="M256 72 L402 156 L402 246 L252 160 L104 246 L104 178 Z"/>
+    <path fill="#F7FAFC" d="M126 252 L204 212 L402 326 L402 402 L256 486 L234 470 L234 410 L324 358 Z"/>
+    <path fill="url(#cyan)" d="M104 266 L198 320 L198 458 L104 404 Z"/>
+  </g>
+</svg>
