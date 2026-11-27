@@ -48,7 +48,10 @@ function normalizedAccount(account) {
     needsPassword: Boolean(account.needsPassword),
     role: account.role === 'company' ? 'company' : 'individual',
     company: account.company && typeof account.company === 'object' ? account.company : null,
-    simulationTargets: normalizeSimulationTargets(account.simulationTargets, account.role === 'company' ? 'company' : 'individual'),
+    simulationTargets: normalizeSimulationTargets(
+      account.simulationTargets,
+      account.role === 'company' ? 'company' : 'individual'
+    ),
     createdAt: account.createdAt || new Date(0).toISOString(),
     migrated: Boolean(account.migrated),
     progress: createProgress(account.progress)
@@ -107,11 +110,20 @@ function normalizeSubscription(source, account) {
   const periodKey = currentPeriodKey(new Date());
   const usageHistory = Array.isArray(usageSource.history) ? usageSource.history.slice(-24) : [];
   let usageCount = Math.max(0, Number(usageSource.count) || 0);
-  let sessionIds = Array.isArray(usageSource.sessionIds) ? [...new Set(usageSource.sessionIds.filter(Boolean))] : [];
-  if (!sessionIds.length && usageCount) sessionIds = Array.from({ length: usageCount }, (_, index) => 'legacy-session-' + index);
+  let sessionIds = Array.isArray(usageSource.sessionIds)
+    ? [...new Set(usageSource.sessionIds.filter(Boolean))]
+    : [];
+  // Older data only stored a count: give each counted session a placeholder ID.
+  if (!sessionIds.length && usageCount) {
+    sessionIds = Array.from({ length: usageCount }, (_, index) => 'legacy-session-' + index);
+  }
+  // A new month starts a fresh quota; the finished period is archived in the history.
   if (String(usageSource.periodKey || '') !== periodKey) {
     if (usageSource.periodKey && (usageCount || sessionIds.length)) {
-      usageHistory.push({ periodKey: String(usageSource.periodKey), count: Math.max(usageCount, sessionIds.length) });
+      usageHistory.push({
+        periodKey: String(usageSource.periodKey),
+        count: Math.max(usageCount, sessionIds.length)
+      });
     }
     usageCount = 0;
     sessionIds = [];

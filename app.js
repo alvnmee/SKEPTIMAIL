@@ -10,16 +10,61 @@ restoreSession();
 function shell() {
   const individual = role === 'individual';
   const navigation = individual
-    ? [['dashboard', 'Dashboard'], ['simulation', 'Simulasi'], ['game', 'Pencapaian'], ['profile', 'Profil & Laporan'], ['education', 'Edukasi'], ['subscription', 'Paket']]
-    : [['company', 'Company Dashboard'], ['education', 'Edukasi'], ['subscription', 'Paket']];
-  document.querySelector('#app').innerHTML =
-    '<div class="shell' + (individual ? '' : ' company-shell') + '"><aside class="sidebar"><div class="side-brand"><img class="side-brand-logo" src="assets/skeptimail-logo-light.svg" alt="Skeptimail"></div><nav class="nav">' +
-    navigation.map(item => '<button data-v="' + item[0] + '" class="' + (item[0] === view ? 'active' : '') + '">' + item[1] + '</button>').join('') +
-    '<button data-v="logout">Keluar</button></nav></aside>' +
-    '<main class="main"><div class="topbar"><div><p class="eyebrow">' + (individual ? 'personal learning space' : 'organization workspace') + '</p><h1 id="title"></h1></div>' +
-    '<div class="user"><div class="avatar">' + esc((currentAccount.displayName || currentAccount.username).charAt(0).toUpperCase()) + '</div>' +
-    '<span class="name">' + esc(currentAccount.displayName) + '<small class="identity-id">@' + esc(currentAccount.username) + '</small></span></div></div><div id="page"></div></main></div>';
-  document.querySelectorAll('[data-v]').forEach(button => button.addEventListener('click', () => {
+    ? [
+      ['dashboard', 'Markas'],
+      ['simulation', 'Kasus'],
+      ['game', 'Pencapaian'],
+      ['profile', 'Arsip'],
+      ['education', 'Edukasi'],
+      ['subscription', 'Paket']
+    ]
+    : [['company', 'Dashboard'], ['education', 'Edukasi'], ['subscription', 'Paket']];
+  const initial = esc((currentAccount.displayName || currentAccount.username).charAt(0).toUpperCase());
+  const rankLevel = individual ? level() : 0;
+  const rankNames = ['Penyidik magang', 'Penyidik muda', 'Penyidik', 'Penyidik senior', 'Kepala penyidik'];
+  const stats = individual
+    ? html`
+      <div class="appbar-rank" title="Level ${rankLevel}">
+        <span class="rank-hex" aria-hidden="true">${rankLevel}</span>
+        <span class="rank-copy">
+          <b>${rankNames[Math.max(0, Math.min(rankLevel, rankNames.length) - 1)]}</b>
+          <small>${state.correct} kasus terpecahkan</small>
+        </span>
+      </div>`
+    : '';
+  const shellClass = individual ? '' : ' company-shell';
+  const homeView = individual ? 'dashboard' : 'company';
+  const navButtons = navigation.map(item => html`
+    <button data-v="${item[0]}" class="${item[0] === view ? 'active' : ''}"${item[0] === view ? ' aria-current="page"' : ''}>
+      ${item[1]}
+    </button>`).join('');
+  document.querySelector('#app').innerHTML = html`
+    <div class="shell${shellClass}">
+      <header class="appbar">
+        <div class="appbar-inner">
+          <a class="appbar-brand" href="#" data-v="${homeView}" aria-label="Skeptimail, ke beranda">
+            <img class="appbar-logo" src="assets/skeptimail-logo-light.svg" alt="Skeptimail">
+            <img class="appbar-mark" src="assets/skeptimail-icon.svg" alt="">
+          </a>
+          <nav class="appnav" aria-label="Navigasi utama">${navButtons}</nav>
+          ${stats}
+          <div class="appbar-user">
+            <span class="avatar" aria-hidden="true">${initial}</span>
+            <span class="name">
+              ${esc(currentAccount.displayName)}
+              <small class="identity-id">@${esc(currentAccount.username)}</small>
+            </span>
+            <button class="appbar-logout" data-v="logout">Keluar</button>
+          </div>
+        </div>
+      </header>
+      <main class="main">
+        <div class="topbar"><h1 id="title"></h1></div>
+        <div id="page"></div>
+      </main>
+    </div>`;
+  document.querySelectorAll('[data-v]').forEach(button => button.addEventListener('click', event => {
+    event.preventDefault();
     if (button.dataset.v === 'logout') {
       save();
       localStorage.removeItem(SESSION_KEY);
@@ -47,16 +92,21 @@ function app() {
   shell();
   const page = document.querySelector('#page');
   const titles = {
-    dashboard: 'Ringkasan keamanan Anda',
-    simulation: 'Simulasi phishing aman',
-    game: 'Pencapaian & peringkat',
-    profile: 'Profil & laporan training',
+    dashboard: '',
+    simulation: '',
+    game: 'Pencapaian',
+    profile: 'Arsip kasus',
     company: 'Dashboard perusahaan',
-    education: 'Tren & edukasi',
-    subscription: 'Paket Skeptimail'
+    education: 'Edukasi',
+    subscription: 'Pilih paket'
   };
-  if (role === 'company' && view !== 'company' && view !== 'education' && view !== 'subscription') view = 'company';
-  document.querySelector('#title').textContent = titles[view] || titles.dashboard;
+  // Company accounts can only reach their own dashboard, education and plans.
+  if (role === 'company' && view !== 'company' && view !== 'education' && view !== 'subscription') {
+    view = 'company';
+  }
+  const pageTitle = view in titles ? titles[view] : '';
+  document.querySelector('#title').textContent = pageTitle;
+  document.querySelector('.topbar').hidden = !pageTitle;
   const pages = { dashboard, simulation, game, profile, company, education, subscription };
   (pages[view] || pages.dashboard)(page);
 }
@@ -91,7 +141,8 @@ document.querySelector('#app').addEventListener('click', event => {
     if (planAction.dataset.planAction === 'confirm') applyPlan(planAction.dataset.confirmPlan);
     if (planAction.dataset.planAction === 'company-registration') beginCompanyRegistration();
     if (planAction.dataset.planAction === 'premium-individual') {
-      planMessage = 'Premium hanya tersedia untuk peran individu. Untuk organisasi, aktifkan Company Plan pada akun perusahaan ini.';
+      planMessage = 'Premium hanya tersedia untuk peran individu. ' +
+        'Untuk organisasi, aktifkan Company Plan pada akun perusahaan ini.';
       subscription(document.querySelector('#page'));
     }
     return;

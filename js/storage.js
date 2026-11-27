@@ -45,10 +45,17 @@ function isDemoAccount(account) {
 // Function: readAccounts
 function readAccounts() {
   const stored = parseStored(ACCOUNTS_KEY, []);
-  const list = Array.isArray(stored) ? stored : (stored && Array.isArray(stored.accounts) ? stored.accounts : []);
-  const clean = list.filter(account => account && !isDemoAccount(account)).map(normalizedAccount).filter(Boolean);
+  const list = Array.isArray(stored)
+    ? stored
+    : (stored && Array.isArray(stored.accounts) ? stored.accounts : []);
+  const clean = list
+    .filter(account => account && !isDemoAccount(account))
+    .map(normalizedAccount)
+    .filter(Boolean);
+  // Rewrite storage when a stored subscription is missing or out of date.
   const needsSubscriptionMigration = list.some(account => !account || !account.subscription ||
-    (account.subscription.plan === 'Premium' && account.subscription.expiresAt && Date.parse(account.subscription.expiresAt) <= Date.now()) ||
+    (account.subscription.plan === 'Premium' && account.subscription.expiresAt &&
+      Date.parse(account.subscription.expiresAt) <= Date.now()) ||
     (account.subscription.plan === 'Company' && account.role !== 'company') ||
     (account.subscription.plan === 'Premium' && account.role === 'company') ||
     (account.subscription.usage && account.subscription.usage.periodKey !== currentPeriodKey(new Date())));
@@ -68,16 +75,22 @@ function persistAccounts() {
 // Function: legacyRecordIsDemo
 function legacyRecordIsDemo(record) {
   if (!record || typeof record !== 'object') return false;
-  const explicitId = normalizeUsername(record.userId || record.username || record.accountId || record.id || '');
+  const explicitId = normalizeUsername(
+    record.userId || record.username || record.accountId || record.id || ''
+  );
   const explicitEmail = String(record.email || '').toLowerCase();
   const explicitName = String(record.displayName || record.name || '').trim().toLowerCase();
   const explicitCompanyName = String(record.company && record.company.name || '').trim().toLowerCase();
-  const explicitRole = record.role === 'company' || localStorage.getItem(LEGACY_ROLE_KEY) === 'company' ? 'company' : 'individual';
+  const explicitRole = record.role === 'company' || localStorage.getItem(LEGACY_ROLE_KEY) === 'company'
+    ? 'company'
+    : 'individual';
   const demoId = /(^|[._-])demo($|[._-])/.test(explicitId);
   const demoLabel = /\bdemo\b/.test(explicitName) || /\bdemo\b/.test(explicitCompanyName);
   const legacyCompanySeed = explicitId === 'admin' && explicitRole === 'company' &&
     (!record.createdAt || !explicitEmail || hasDemoEmail(explicitEmail));
-  if (record.demo === true || hasDemoEmail(explicitEmail) || demoId || demoLabel || legacyCompanySeed) return true;
+  if (record.demo === true || hasDemoEmail(explicitEmail) || demoId || demoLabel || legacyCompanySeed) {
+    return true;
+  }
   if (explicitId && !knownDemoIds.includes(explicitId) && explicitId !== 'nadia') return false;
   const name = String(record.displayName || record.name || '').trim().toLowerCase();
   if (knownDemoNames.includes(name)) return true;
@@ -108,7 +121,9 @@ function migrateLegacyStorage() {
   let account = accounts.find(item => item.id === id);
   if (!account) {
     const migratedRole = legacy.role === 'company' || priorRole === 'company' ? 'company' : 'individual';
-    const displayName = String(legacy.displayName || legacy.name || (legacy.company && legacy.company.name) || id);
+    const displayName = String(
+      legacy.displayName || legacy.name || (legacy.company && legacy.company.name) || id
+    );
     account = normalizedAccount({
       id: id,
       username: id,
@@ -124,7 +139,9 @@ function migrateLegacyStorage() {
     });
     accounts.push(account);
   }
-  if (priorRole && account && !localStorage.getItem(SESSION_KEY)) localStorage.setItem(SESSION_KEY, account.id);
+  if (priorRole && account && !localStorage.getItem(SESSION_KEY)) {
+    localStorage.setItem(SESSION_KEY, account.id);
+  }
   localStorage.removeItem(LEGACY_STATE_KEY);
   localStorage.removeItem(LEGACY_ROLE_KEY);
   persistAccounts();

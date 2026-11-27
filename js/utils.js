@@ -1,20 +1,33 @@
 // Function: normalizeUsername
 function normalizeUsername(value) {
-  return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().replace(/@.*$/, '').replace(/\s+/g, '-').replace(/[^a-z0-9._-]/g, '').replace(/^[._-]+|[._-]+$/g, '').slice(0, 32);
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '') // strip accents
+    .trim()
+    .toLowerCase()
+    .replace(/@.*$/, '') // an email becomes its local part
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9._-]/g, '')
+    .replace(/^[._-]+|[._-]+$/g, '')
+    .slice(0, 32);
 }
 
 
 // Function: formatDate
 function formatDate(value) {
   const date = value ? new Date(value) : null;
-  return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+  if (!date || Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 
 // Function: initials
 function initials(name) {
   const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-  return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] || '?').slice(0, 2)).toUpperCase();
+  const letters = parts.length > 1
+    ? parts[0][0] + parts[parts.length - 1][0]
+    : (parts[0] || '?').slice(0, 2);
+  return letters.toUpperCase();
 }
 
 
@@ -40,4 +53,37 @@ function shuffled(items) {
     [copy[index], copy[swap]] = [copy[swap], copy[index]];
   }
   return copy;
+}
+
+
+// Indonesian names for scenario categories, shown wherever a category reaches the screen.
+const CATEGORY_LABELS = {
+  'Suspicious sender': 'Pengirim mencurigakan',
+  'Impersonation': 'Menyamar jadi orang dikenal',
+  'Fake links': 'Tautan palsu',
+  'Credential requests': 'Minta password atau OTP',
+  'Payment change': 'Ganti rekening tujuan',
+  'Malicious attachments': 'Lampiran berbahaya',
+  'Social engineering': 'Rekayasa sosial',
+  'QR phishing': 'QR phishing',
+  'Legitimate message': 'Pesan asli',
+  'Urgency tactics': 'Tekanan waktu',
+  'Account takeover': 'Pengambilalihan akun'
+};
+
+
+// Function: categoryLabel
+function categoryLabel(category) {
+  return CATEGORY_LABELS[category] || category || '';
+}
+
+
+// Function: html
+// Tagged template for markup. Lets a template span several indented lines
+// without adding whitespace to the output: every line break, together with
+// the indentation that follows it, is removed from the literal parts.
+// Interpolated values are inserted unchanged, so arrays must be joined first.
+function html(strings, ...values) {
+  return strings.reduce((output, part, index) =>
+    output + part.replace(/\n\s*/g, '') + (index < values.length ? values[index] : ''), '');
 }
