@@ -711,19 +711,19 @@ function simulation(page) {
   let feedbackMarkup = '';
   if (priorAnswer) {
     const verdictClass = (priorAnswer.correct ? 'is-correct' : 'is-wrong') + (isPhish ? '' : ' is-safe-case');
-    const choiceLabel = priorAnswer.choice === 'phish' ? 'phishing' : 'aman';
-    const outcomeLabel = priorAnswer.correct ? 'tepat, +' + priorAnswer.xp + ' XP' : 'meleset, streak kembali ke 0';
+    const choiceLabel = priorAnswer.choice === 'phish' ? 'Phishing' : 'Aman';
+    const outcomeLabel = priorAnswer.correct ? 'benar, +' + priorAnswer.xp + ' XP' : 'salah, streak kembali ke 0';
     const evidenceHeading = isPhish
-      ? (priorAnswer.correct ? 'Bukti yang kamu tangkap' : 'Bukti yang terlewat')
+      ? (priorAnswer.correct ? 'Red flags yang terdeteksi' : 'Red flags yang terlewat')
       : (priorAnswer.correct ? 'Kenapa pesan ini aman' : 'Kenapa pesan ini sebenarnya aman');
     const clueItems = scenario.feedback.clues.map((clue, index) => html`
       <li><span class="pin" aria-hidden="true">${index + 1}</span>${safeText(clue)}</li>
     `).join('');
     const actionHeading = isPhish ? 'Tindakan aman' : 'Tetap verifikasi bila ragu';
-    const nextLabel = session.index === 4 ? 'Tutup berkas sesi' : 'Kasus berikutnya';
+    const nextLabel = session.index === 4 ? 'Lihat hasil sesi' : 'Pesan berikutnya';
     feedbackMarkup = html`
       <section class="case-verdict ${verdictClass}" id="result" aria-live="polite">
-        <p class="verdict-line">Putusanmu: ${choiceLabel} · ${outcomeLabel}</p>
+        <p class="verdict-line">Jawabanmu: ${choiceLabel} · ${outcomeLabel}</p>
         <h3>${evidenceHeading}</h3>
         <p class="verdict-summary">${safeText(scenario.feedback.summary)}</p>
         <ol class="evidence-list">${clueItems}</ol>
@@ -745,7 +745,7 @@ function simulation(page) {
   const stamp = priorAnswer
     ? html`
       <div class="case-stamp ${isPhish ? 'is-phish' : 'is-safe'}" aria-hidden="true">
-        ${isPhish ? 'Terbukti phishing' : 'Pesan asli'}
+        ${isPhish ? 'Phishing' : 'Legit'}
       </div>
     `
     : '';
@@ -754,12 +754,12 @@ function simulation(page) {
   const levelClass = safeText(String(scenario.difficulty).toLowerCase());
   const heading = priorAnswer ? safeText(scenario.title) : 'Aman atau phishing?';
   const linkButtonLabel = scenario.link ? 'Analisis tautan' : 'Periksa detail pesan';
-  const answerPrompt = priorAnswer ? '' : '<p class="answer-prompt">Apa putusanmu?</p>';
+  const answerPrompt = priorAnswer ? '' : '<p class="answer-prompt">Apa jawabanmu?</p>';
   page.innerHTML = html`
     <div class="sim-stage${stageModifier}">
       <div class="sim-top">
-        <span class="case-count">Kasus ${Math.min(session.index + 1, 5)} dari 5</span>
-        <span class="case-dots" role="img" aria-label="${answeredCount} dari 5 kasus sudah diputus">${dots}</span>
+        <span class="case-count">Pesan ${Math.min(session.index + 1, 5)} dari 5</span>
+        <span class="case-dots" role="img" aria-label="${answeredCount} dari 5 pesan sudah dijawab">${dots}</span>
         <button class="sim-exit" type="button" data-sim-action="dashboard">Simpan dan keluar</button>
       </div>
       <div class="case-layout">

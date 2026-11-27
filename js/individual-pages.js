@@ -94,14 +94,14 @@ function recommendation() {
 
 // Function: dashboard
 const LEARNING_PATH = [
-  ['Suspicious sender', 'Pengirim mencurigakan'],
-  ['Impersonation', 'Menyamar jadi orang dikenal'],
-  ['Fake links', 'Tautan palsu'],
-  ['Credential requests', 'Minta password atau OTP'],
-  ['Payment change', 'Ganti rekening tujuan'],
-  ['Malicious attachments', 'Lampiran berbahaya'],
-  ['Social engineering', 'Rekayasa sosial'],
-  ['QR phishing', 'QR phishing']
+  ['Suspicious sender', 'Suspicious Sender'],
+  ['Impersonation', 'Impersonation'],
+  ['Fake links', 'Fake Link'],
+  ['Credential requests', 'OTP Request'],
+  ['Payment change', 'Payment Change'],
+  ['Malicious attachments', 'Malicious Attachment'],
+  ['Social engineering', 'Social Engineering'],
+  ['QR phishing', 'QR Phishing']
 ];
 
 function dashboard(page) {
@@ -115,14 +115,14 @@ function dashboard(page) {
     const count = recognized[item[0]] || 0;
     const status = count > 0 ? 'is-done' : index === currentIndex ? 'is-current' : 'is-next';
     const note = count > 0
-      ? 'Terpecahkan ' + count + ' kali'
-      : index === currentIndex ? 'Modus berikutnya' : 'Belum diperiksa';
+      ? 'Terdeteksi ' + count + ' kali'
+      : index === currentIndex ? 'Next up' : 'Belum dicoba';
     const marker = count > 0
       ? html`<small aria-hidden="true">${count}×</small>`
-      : index === currentIndex ? '<small aria-hidden="true">berikutnya</small>' : '';
+      : index === currentIndex ? '<small aria-hidden="true">next up</small>' : '';
     return html`
       <li class="hive-cell ${status}">
-        <button type="button" data-path-start title="${esc(note)}" aria-label="${esc(item[1] + ', ' + note + '. Buka kasus')}">
+        <button type="button" data-path-start title="${esc(note)}" aria-label="${esc(item[1] + ', ' + note + '. Mulai simulasi')}">
           <span>${esc(item[1])}</span>
           ${marker}
         </button>
@@ -143,7 +143,7 @@ function dashboard(page) {
   const remaining = freeQuotaRemaining();
   const quotaLine = getSubscription().plan === 'Free'
     ? 'Paket Free · ' + remaining + ' dari 3 sesi tersisa bulan ini'
-    : esc(activePlanLabel()) + ' · kasus tanpa batas';
+    : esc(activePlanLabel()) + ' · simulasi tanpa batas';
   const badges = badgeDefinitions(state);
   const nextBadge = badges.filter(badge => !badge.unlocked)
     .map(badge => ({ ...badge, remaining: Math.max(0, badge.target - badge.progress) }))
@@ -157,7 +157,7 @@ function dashboard(page) {
           <i style="height:${Math.max(8, Number(entry.score) || 0)}%" title="Skor ${Number(entry.score) || 0}"></i>
         `).join('')}
       </div>`
-    : '<small>Grafik muncul setelah kasus pertama.</small>';
+    : '<small>Grafik muncul setelah simulasi pertama.</small>';
   const trendBlock = hasAccess('progress-tracking')
     ? html`
       <div class="rail-block">
@@ -182,13 +182,13 @@ function dashboard(page) {
       <i aria-hidden="true">${item.ok ? '✓' : '!'}</i>
       <span>
         <b>${safeText(item.title)}</b>
-        <small>${item.ok ? 'Terpecahkan' : 'Meleset, pelajari lagi'}</small>
+        <small>${item.ok ? 'Benar' : 'Salah, pelajari lagi'}</small>
       </span>
     </li>`).join('');
 
-  const greetingNote = state.total ? 'Kasus berikutnya sudah menunggu.' : 'Kasus pertamamu sudah menunggu.';
+  const greetingNote = state.total ? 'Siap latihan lagi?' : 'Yuk mulai simulasi pertamamu.';
   const exampleQuote = example
-    ? html`<p class="case-quote">Contoh kasus: ${safeText(example.title)}</p>`
+    ? html`<p class="case-quote">Contoh: ${safeText(example.title)}</p>`
     : '';
   const badgeBlock = nextBadge
     ? html`
@@ -203,7 +203,7 @@ function dashboard(page) {
   const recentBlock = recent
     ? html`
       <div class="rail-block">
-        <div class="rail-head"><b>Kasus terakhir</b></div>
+        <div class="rail-head"><b>Simulasi terakhir</b></div>
         <ul class="recent-list">${recent}</ul>
       </div>`
     : '';
@@ -212,19 +212,19 @@ function dashboard(page) {
     <div class="home">
       <section class="home-main">
         <h2 class="home-greeting">Halo, ${esc(firstName)}. ${greetingNote}</h2>
-        <p class="home-sub">Peta modus · ${doneCount} dari ${LEARNING_PATH.length} sudah kamu pecahkan</p>
-        <ol class="hive" aria-label="Peta modus penipuan">${rows}</ol>
+        <p class="home-sub">Phishing map · ${doneCount} dari ${LEARNING_PATH.length} jenis sudah terdeteksi</p>
+        <ol class="hive" aria-label="Phishing map">${rows}</ol>
       </section>
       <aside class="home-rail">
         <div class="case-card">
-          <span class="case-kicker">Modus berikutnya · ${esc(nextMode[1])}</span>
+          <span class="case-kicker">Next up · ${esc(nextMode[1])}</span>
           ${exampleQuote}
-          <button type="button" class="primary" data-path-start>Buka kasus</button>
+          <button type="button" class="primary" data-path-start>Mulai simulasi</button>
         </div>
         <div class="home-stats">
-          <div><b>${score()}</b><small>skor ketahanan</small></div>
-          <div><b>${Math.min(todayCount, 5)}<em>/5</em></b><small>pesan hari ini</small></div>
-          <div><b>${dayStreak}</b><small>hari berturut</small></div>
+          <div><b>${score()}</b><small>resilience score</small></div>
+          <div><b>${Math.min(todayCount, 5)}<em>/5</em></b><small>daily goal</small></div>
+          <div><b>${dayStreak}</b><small>streak</small></div>
         </div>
         ${trendBlock}
         ${badgeBlock}
@@ -535,16 +535,16 @@ function profile(page) {
       <tr class="${item.ok ? 'is-ok' : 'is-miss'}">
         <td><b>${safeText(item.title)}</b>${meta ? html`<small>${meta}</small>` : ''}</td>
         <td>${safeText(categoryLabel(item.cat))}</td>
-        <td><span class="verdict-chip"><i aria-hidden="true"></i>${item.ok ? 'Tepat' : 'Meleset'}</span></td>
+        <td><span class="verdict-chip"><i aria-hidden="true"></i>${item.ok ? 'Benar' : 'Salah'}</span></td>
         <td class="archive-time">${when(item)}</td>
       </tr>`;
   }).join('');
   const emptyRow = items.length
-    ? '<tr><td colspan="4" class="archive-empty">Tidak ada kasus dengan putusan ini.</td></tr>'
+    ? '<tr><td colspan="4" class="archive-empty">Tidak ada simulasi dengan hasil ini.</td></tr>'
     : html`
       <tr>
         <td colspan="4" class="archive-empty">
-          Belum ada kasus yang diputus. <button type="button" class="link-button" data-archive-start>Buka kasus pertama</button>
+          Belum ada riwayat simulasi. <button type="button" class="link-button" data-archive-start>Mulai simulasi pertama</button>
         </td>
       </tr>`;
 
@@ -552,7 +552,7 @@ function profile(page) {
   const insight = hasAccess('risk-report')
     ? html`
       <section class="archive-insight">
-        <h2>Paling sering meleset</h2>
+        <h2>Paling sering salah</h2>
         ${weaknesses.length
           ? html`
             <ul class="weak-list">
@@ -561,11 +561,11 @@ function profile(page) {
               `).join('')}
             </ul>
             <p class="rail-tip">${recommendation()}</p>`
-          : '<p class="muted">Belum ada modus yang berulang kali meleset.</p>'}
+          : '<p class="muted">Belum ada jenis phishing yang berulang kali salah.</p>'}
       </section>`
     : html`
       <p class="archive-upsell">
-        Modus yang paling sering meleset dan saran latihan pribadi tampil di sini dengan Premium. <button type="button" class="link-button" data-open-plan>Lihat paket</button>
+        Jenis phishing yang paling sering salah dan saran latihan pribadi tampil di sini dengan Premium. <button type="button" class="link-button" data-open-plan>Lihat paket</button>
       </p>`;
 
   const filterButton = (key, label, count) => html`
@@ -573,27 +573,27 @@ function profile(page) {
       ${label} <span>${count}</span>
     </button>`;
   const summary = items.length
-    ? items.length + ' kasus diputus · ' + okCount + ' tepat · akurasi ' + accuracy() + '% · ' +
+    ? items.length + ' simulasi · ' + okCount + ' benar · akurasi ' + accuracy() + '% · ' +
       state.xp + ' XP, level ' + level()
-    : 'Setiap kasus yang kamu putus akan tercatat di sini.';
+    : 'Setiap simulasi yang kamu kerjakan akan tercatat di sini.';
 
   page.innerHTML = html`
     <div class="archive">
       <div class="archive-head">
         <p class="archive-summary">${summary}</p>
-        <div class="filters archive-filters" role="group" aria-label="Saring putusan">
+        <div class="filters archive-filters" role="group" aria-label="Filter hasil">
           ${filterButton('all', 'Semua', items.length)}
-          ${filterButton('ok', 'Tepat', okCount)}
-          ${filterButton('miss', 'Meleset', missCount)}
+          ${filterButton('ok', 'Benar', okCount)}
+          ${filterButton('miss', 'Salah', missCount)}
         </div>
       </div>
       <div class="table-wrap archive-table">
         <table>
           <thead>
             <tr>
-              <th scope="col">Kasus</th>
-              <th scope="col">Modus</th>
-              <th scope="col">Putusan</th>
+              <th scope="col">Pesan</th>
+              <th scope="col">Jenis</th>
+              <th scope="col">Hasil</th>
               <th scope="col" class="archive-time">Waktu</th>
             </tr>
           </thead>

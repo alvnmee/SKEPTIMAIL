@@ -248,7 +248,7 @@ function educationLessonDetail(topic) {
     <p class="edu-detail-lead">${esc(topic.mechanism)}</p>
     <div class="edu-detail-grid">
       <article><span class="edu-detail-index">Contoh fiktif</span><p>${esc(topic.example)}</p></article>
-      <article><span class="edu-detail-index">Tanda yang diperiksa</span><ul>${signalItems}</ul></article>
+      <article><span class="edu-detail-index">Red flags</span><ul>${signalItems}</ul></article>
       <article><span class="edu-detail-index">Kesalahan umum</span><p>${esc(topic.mistake)}</p></article>
       <article><span class="edu-detail-index">Pencegahan</span><p>${esc(topic.prevention)}</p></article>
       <article class="edu-detail-response"><span class="edu-detail-index">Jika sudah terlanjur</span><p>${esc(topic.response)}</p></article>
@@ -269,14 +269,14 @@ function educationLessonButton(topic) {
 // Function: educationLessonLibrary
 // Per topic: [display name, the one sign to check, simulation category used to mark it solved].
 const EDUCATION_INDEX = {
-  'fake-links': ['Tautan palsu', 'Tulisan tombol berbeda dengan alamat tujuan.', 'Fake links'],
-  'impersonation': ['Menyamar jadi orang dikenal', 'Nama yang dikenal, tapi alamat atau nomornya baru.', 'Impersonation'],
-  'credentials': ['Minta password atau OTP', 'Pihak resmi tidak pernah meminta kode rahasia.', 'Credential requests'],
-  'urgency': ['Tekanan waktu', 'Tenggat sempit dan ancaman supaya kamu tidak sempat mengecek.', null],
-  'attachments': ['Lampiran berbahaya', 'File yang tidak diminta, ekstensinya janggal.', 'Malicious attachments'],
-  'qr-phishing': ['QR phishing', 'QR di poster atau lampiran yang alamat tujuannya tersembunyi.', 'QR phishing'],
-  'account-takeover': ['Pengambilalihan akun', 'Notifikasi login atau reset yang tidak kamu lakukan.', null],
-  'social-engineering': ['Rekayasa sosial', 'Pertanyaan kecil yang lama-lama mengorek data penting.', 'Social engineering']
+  'fake-links': ['Fake Link', 'Tulisan tombol berbeda dengan alamat tujuan.', 'Fake links'],
+  'impersonation': ['Impersonation', 'Nama yang dikenal, tapi alamat atau nomornya baru.', 'Impersonation'],
+  'credentials': ['OTP Request', 'Pihak resmi tidak pernah meminta kode rahasia.', 'Credential requests'],
+  'urgency': ['Urgency', 'Tenggat sempit dan ancaman supaya kamu tidak sempat mengecek.', null],
+  'attachments': ['Malicious Attachment', 'File yang tidak diminta, ekstensinya janggal.', 'Malicious attachments'],
+  'qr-phishing': ['QR Phishing', 'QR di poster atau lampiran yang alamat tujuannya tersembunyi.', 'QR phishing'],
+  'account-takeover': ['Account Takeover', 'Notifikasi login atau reset yang tidak kamu lakukan.', null],
+  'social-engineering': ['Social Engineering', 'Pertanyaan kecil yang lama-lama mengorek data penting.', 'Social engineering']
 };
 
 function educationLessonLibrary() {
@@ -297,9 +297,9 @@ function educationLessonLibrary() {
           <span class="edu-index-num" aria-hidden="true">${index + 1}</span>
           <span class="edu-index-copy">
             <b>${esc(meta[0])}</b>
-            <small>Tanda: ${esc(meta[1])}</small>
+            <small>Red flag: ${esc(meta[1])}</small>
           </span>
-          ${solved ? '<span class="edu-index-state">Pernah kamu pecahkan</span>' : ''}
+          ${solved ? '<span class="edu-index-state">Sudah terdeteksi</span>' : ''}
         </button>
       </li>`;
   }).join('');
@@ -439,8 +439,8 @@ function education(page) {
   }).join('');
   page.innerHTML = `<div class="edu-page">
     <section class="edu-lessons" id="edu-lessons" aria-labelledby="edu-lessons-title">
-      <div class="edu-intro"><h2 id="edu-lessons-title" tabindex="-1">Delapan modus, masing-masing dengan satu tanda yang bisa dicek dalam 10 detik.</h2>
-        <p>Pilih modus untuk membaca contoh, kesalahan umum, dan apa yang harus dilakukan kalau sudah terlanjur.</p></div>
+      <div class="edu-intro"><h2 id="edu-lessons-title" tabindex="-1">8 jenis phishing yang paling sering dipakai, masing-masing dengan satu red flag yang bisa dicek dalam 10 detik.</h2>
+        <p>Pilih salah satu untuk membaca contoh, kesalahan umum, dan apa yang harus dilakukan kalau sudah terlanjur.</p></div>
       ${detail ? educationLessonDetail(detail) : ''}${educationLessonLibrary()}
     </section>
 

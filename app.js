@@ -11,24 +11,23 @@ function shell() {
   const individual = role === 'individual';
   const navigation = individual
     ? [
-      ['dashboard', 'Markas'],
-      ['simulation', 'Kasus'],
-      ['game', 'Pencapaian'],
-      ['profile', 'Arsip'],
-      ['education', 'Edukasi'],
-      ['subscription', 'Paket']
+      ['dashboard', 'Dashboard'],
+      ['simulation', 'Simulasi'],
+      ['game', 'Achievements'],
+      ['profile', 'History'],
+      ['education', 'Learn'],
+      ['subscription', 'Plans']
     ]
-    : [['company', 'Dashboard'], ['education', 'Edukasi'], ['subscription', 'Paket']];
+    : [['company', 'Dashboard'], ['education', 'Learn'], ['subscription', 'Plans']];
   const initial = esc((currentAccount.displayName || currentAccount.username).charAt(0).toUpperCase());
   const rankLevel = individual ? level() : 0;
-  const rankNames = ['Penyidik magang', 'Penyidik muda', 'Penyidik', 'Penyidik senior', 'Kepala penyidik'];
   const stats = individual
     ? html`
       <div class="appbar-rank" title="Level ${rankLevel}">
         <span class="rank-hex" aria-hidden="true">${rankLevel}</span>
         <span class="rank-copy">
-          <b>${rankNames[Math.max(0, Math.min(rankLevel, rankNames.length) - 1)]}</b>
-          <small>${state.correct} kasus terpecahkan</small>
+          <b>Level ${rankLevel}</b>
+          <small>${state.correct} jawaban benar</small>
         </span>
       </div>`
     : '';
@@ -94,11 +93,11 @@ function app() {
   const titles = {
     dashboard: '',
     simulation: '',
-    game: 'Pencapaian',
-    profile: 'Arsip kasus',
+    game: 'Achievements',
+    profile: 'History',
     company: 'Dashboard perusahaan',
-    education: 'Edukasi',
-    subscription: 'Pilih paket'
+    education: 'Learn',
+    subscription: 'Plans'
   };
   // Company accounts can only reach their own dashboard, education and plans.
   if (role === 'company' && view !== 'company' && view !== 'education' && view !== 'subscription') {

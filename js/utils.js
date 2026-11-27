@@ -56,19 +56,19 @@ function shuffled(items) {
 }
 
 
-// Indonesian names for scenario categories, shown wherever a category reaches the screen.
+// Display names for scenario categories, shown wherever a category reaches the screen.
 const CATEGORY_LABELS = {
-  'Suspicious sender': 'Pengirim mencurigakan',
-  'Impersonation': 'Menyamar jadi orang dikenal',
-  'Fake links': 'Tautan palsu',
-  'Credential requests': 'Minta password atau OTP',
-  'Payment change': 'Ganti rekening tujuan',
-  'Malicious attachments': 'Lampiran berbahaya',
-  'Social engineering': 'Rekayasa sosial',
-  'QR phishing': 'QR phishing',
-  'Legitimate message': 'Pesan asli',
-  'Urgency tactics': 'Tekanan waktu',
-  'Account takeover': 'Pengambilalihan akun'
+  'Suspicious sender': 'Suspicious Sender',
+  'Impersonation': 'Impersonation',
+  'Fake links': 'Fake Link',
+  'Credential requests': 'OTP Request',
+  'Payment change': 'Payment Change',
+  'Malicious attachments': 'Malicious Attachment',
+  'Social engineering': 'Social Engineering',
+  'QR phishing': 'QR Phishing',
+  'Legitimate message': 'Legit',
+  'Urgency tactics': 'Urgency',
+  'Account takeover': 'Account Takeover'
 };
 
 

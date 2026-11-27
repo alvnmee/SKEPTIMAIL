@@ -4,7 +4,7 @@ function login() {
   const splitClass = isLogin ? '' : ' is-register';
   const heading = isLogin ? 'Masuk' : 'Buat akun';
   const intro = isLogin
-    ? 'Lanjutkan kasus yang terakhir kamu buka.'
+    ? 'Lanjutkan latihanmu.'
     : 'Akun dan progres disimpan di browser ini saja, tidak tersinkron ke perangkat lain.';
   // The individual/company switch is only offered while registering.
   const accountSwitch = isLogin ? '' : html`
