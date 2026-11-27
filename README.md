@@ -1,6 +1,4 @@
-# Skeptimail prototype
-
-Skeptimail adalah prototype vanilla HTML/CSS/JavaScript untuk simulasi dan edukasi phishing yang aman.
+# Skeptimail 
 
 ## Menjalankan
 
@@ -23,4 +21,4 @@ Daftarkan akun individu atau perusahaan melalui form, lalu masuk menggunakan ID 
 3. Periksa perubahan XP, streak, badge, leaderboard, dashboard, serta laporan profil.
 4. Daftarkan akun perusahaan untuk melihat dashboard organisasi dalam kondisi kosong sampai ada sumber data karyawan.
 
-Logout tidak menghapus akun atau progres. Jangan hapus seluruh local storage bila ingin mempertahankan akun dan progres lokal.
+
