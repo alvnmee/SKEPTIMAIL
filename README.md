@@ -1,6 +1,5 @@
 # Skeptimail 
 
-## Menjalankan
 
 Di folder ini jalankan:
 
